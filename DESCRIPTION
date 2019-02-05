@@ -1,0 +1,14 @@
+Package: ggcertara
+Type: Package
+Version: 0.1
+Date: 2019-02-05
+Title: A ggplot2 theme for Certara CSC-iDD
+Authors@R: c(
+    person("Benjamin", "Rich", role=c("aut", "cre"), email="benjamin.rich@certara.com"),
+    person("Benjamin", "Guiastrennec", role=c("ctb"), email="Benjamin.Guiastrennec@certara.com"))
+Description: A theme to be used by Certara CSC-iDD when plotting with ggplot2.
+License: GPL-3
+Imports: ggplot2 (>= 3.0.0),scales
+Suggests: knitr
+VignetteBuilder: knitr
+RoxygenNote: 6.1.0
