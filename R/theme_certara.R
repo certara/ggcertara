@@ -13,30 +13,39 @@
 #' library(ggplot2)
 #' 
 #' set.seed(123)
-#' x <- rnorm(100)
+#' x <- rnorm(100) + 3
 #' g <- rep(0:5, len=100)
-#' y <- rnorm(100, 0.33*x + 0.2*g, 0.1)
+#' y <- exp(rnorm(100, 0.33*x + 0.2*g, 0.1))
 #' g <- factor(g, labels=c("xxx", "yyy", "zzz", "aaa", "bbb", "ccc"))
 #'
 #' theme_set(theme_certara())
 #' scale_colour_discrete <- function(...) scale_color_certara(...)
 #' scale_fill_discrete <- function(...) scale_fill_certara(...)
 #'
-#' gl <- guide_legend(title.position="top")
+#' gl <- guide_legend("Legend", title.position="top")
 #' p <- ggplot(data.frame(x, y, g), aes(x=x, y=y, color=g, shape=g, linetype=g, fill=g)) +
 #'     geom_point() +
 #'     geom_smooth(method="lm", se=T) +
 #'     labs(title="Random Data", subtitle="test-test") +
-#'     guides(colour=gl, fill=gl)
+#'     guides(colour=gl, fill=gl, shape=gl, linetype=gl)
 #' p
 #'
 #' p + theme_certara_grid()
 #' p + scale_y_continuous(position="right")
 #'
 #' p + facet_wrap(~ g)
+#' p + scale_y_log10() + annotation_logticks(sides="l")
+#' p + scale_y_log10() + annotation_logticks(sides="l") + theme_certara_grid()
 #'
 #' v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 #' v + scale_fill_certara_c()
+#'
+#' dat <- data.frame(x=1:12)
+#' p <- ggplot(dat) +
+#'     geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
+#'     labs(color="")
+#' p
+#'
 #' }
 theme_certara <- function(base_size=16, base_family="",
     base_line_size=base_size/22, base_rect_size=base_size/22) {
@@ -241,7 +250,12 @@ certara_pal <- function(n) {
         "#FDBA31",
         "#838383",
         "#AB3DA0",
-        "#FF7F27")
+        "#FF7F27",
+        "#FFBCEC",
+        "#1CAFA1",
+        "#4446A3",
+        "#843933",
+        "#C1A90D")
 
   if (length(cols) < n)
     cols <- rep(cols, length.out = n)
