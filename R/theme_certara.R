@@ -2,8 +2,8 @@
 #'
 #' @inheritParams ggplot2::theme_grey
 #' @inheritParams ggplot2::continuous_scale
-#' @param ... Other arguments passed on to [discrete_scale()] or
-#' [continuous_scale()]
+#' @param ... Other arguments passed on to \code{\link[ggplot2]{discrete_scale}()} or
+#' \code{\link[ggplot2]{continuous_scale}()}.
 #' @return An object of class \code{\link[ggplot2]{theme}()}.
 #' @import ggplot2
 #' @export
@@ -40,7 +40,7 @@
 #' v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 #' v + scale_fill_certara_c()
 #'
-#' dat <- data.frame(x=1:12)
+#' dat <- data.frame(x=1:17)
 #' p <- ggplot(dat) +
 #'     geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
 #'     labs(color="")
@@ -234,33 +234,41 @@ theme_certara_grid <- function(base_size=16, base_family="",
         panel.grid.minor=element_line(size=rel(1.0)))
 }
 
-
-certara_pal <- function(n) {
-    # red: rgb(237, 28, 36, maxColorValue=255)
-    # blue: rgb(65, 138, 179, maxColorValue=255)
-    # green: rgb(166, 183, 39, maxColorValue=255)
-    # gold: rgb(253, 186, 49, maxColorValue=255)
-    # grey: rgb(131, 131, 131, maxColorValue=255)
-    # purple: rgb(171, 61, 160, maxColorValue=255)
-    # orange: rgb(255, 127, 39, maxColorValue=255)
+#' Certara color palette
+#'
+#' @param n The number of colors requested in the palette.
+#' @return A character vector of hex codes for the colors in the palette.
+#' @export
+#' @examples
+#' certara_pal(8)
+certara_pal <- function(n=17) {
+    # Certara corporate branded colors
     cols <- c(
-        "#ED1C24",
-        "#418AB3",
-        "#A6B727",
-        "#FDBA31",
-        "#838383",
-        "#AB3DA0",
-        "#FF7F27",
-        "#FFBCEC",
-        "#1CAFA1",
-        "#4446A3",
-        "#843933",
-        "#C1A90D")
+        "#4982ac",
+        "#ee3124",
+        "#fdbb30",
+        "#6d405d",
+        "#007f97",
+        "#666691",
+        "#0a7bc1",
+        "#971b22",
+        "#69899e",
+        "#877e4b",
+        "#f26522",
+        "#932784",
+        "#2b398b",
+        "#279594",
+        "#d80b8c",
+        "#e31e30",
+        "#7159a6")
 
-  if (length(cols) < n)
-    cols <- rep(cols, length.out = n)
+    if (n == 0) {
+        stop("Must request at least one color.")
+    }
+    if (length(cols) < n)
+        cols <- rep(cols, length.out=n) # Recycle colors
 
-  cols[1:n]
+    cols[1:n]
 }
 
 #' @rdname theme_certara
