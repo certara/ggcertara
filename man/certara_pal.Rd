@@ -4,17 +4,21 @@
 \alias{certara_pal}
 \title{Certara color palette}
 \usage{
-certara_pal(n = 17)
+certara_pal(choose)
 }
 \arguments{
-\item{n}{The number of colors requested in the palette.}
+\item{choose}{The indices of colors requested in the palette (optional). If
+missing, all available colors will be included. The palette currently
+contains 12 distinct colors; if more colors are needed for a plot these 12
+colors will be recycled.}
 }
 \value{
-A character vector of hex codes for the colors in the palette.
+A palette function, that returns a vector of hex codes for the
+colors in the palette when called with a single integer argument.
 }
 \description{
 Certara color palette
 }
 \examples{
-certara_pal(8)
+certara_pal()(8)
 }

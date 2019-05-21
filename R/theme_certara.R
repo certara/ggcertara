@@ -16,7 +16,7 @@
 #' x <- rnorm(100) + 3
 #' g <- rep(0:5, len=100)
 #' y <- exp(rnorm(100, 0.33*x + 0.2*g, 0.1))
-#' g <- factor(g, labels=c("xxx", "yyy", "zzz", "aaa", "bbb", "ccc"))
+#' g <- factor(g, labels=do.call(paste0, rep(list(letters[1:6]), 3)))
 #'
 #' theme_set(theme_certara())
 #' scale_colour_discrete <- function(...) scale_color_certara(...)
@@ -40,7 +40,7 @@
 #' v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 #' v + scale_fill_certara_c()
 #'
-#' dat <- data.frame(x=1:17)
+#' dat <- data.frame(x=1:12)
 #' p <- ggplot(dat) +
 #'     geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
 #'     labs(color="")
@@ -236,39 +236,40 @@ theme_certara_grid <- function(base_size=16, base_family="",
 
 #' Certara color palette
 #'
-#' @param n The number of colors requested in the palette.
-#' @return A character vector of hex codes for the colors in the palette.
+#' @param choose The indices of colors requested in the palette (optional). If
+#' missing, all available colors will be included. The palette currently
+#' contains 12 distinct colors; if more colors are needed for a plot these 12
+#' colors will be recycled.
+#' @return A palette function, that returns a vector of hex codes for the
+#' colors in the palette when called with a single integer argument.
 #' @export
 #' @examples
-#' certara_pal(8)
-certara_pal <- function(n=17) {
-    # Certara corporate branded colors
+#' certara_pal()(8)
+certara_pal <- function(choose) {
     cols <- c(
+        "#279594",
+        "#2b398b",
+        "#d89a17",
+        "#69899e",
+        "#d80b8c",
+        "#6d405d",
+        "#f26522",
         "#4982ac",
         "#ee3124",
-        "#fdbb30",
-        "#6d405d",
-        "#007f97",
-        "#666691",
-        "#0a7bc1",
-        "#971b22",
-        "#69899e",
+        "#8d59a6",
         "#877e4b",
-        "#f26522",
-        "#932784",
-        "#2b398b",
-        "#279594",
-        "#d80b8c",
-        "#e31e30",
-        "#7159a6")
+        "#971b22")
 
-    if (n == 0) {
-        stop("Must request at least one color.")
+    if (!missing(choose)) {
+        cols <- cols[choose]
     }
-    if (length(cols) < n)
-        cols <- rep(cols, length.out=n) # Recycle colors
 
-    cols[1:n]
+    function(n=length(cols)) {
+        if (n == 0) {
+            stop("Must request at least one color.")
+        }
+        rep(cols, length.out=n) # Recycle colors
+    }
 }
 
 #' @rdname theme_certara
@@ -277,7 +278,7 @@ scale_colour_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="colour",
         scale_name="certara",
-        palette=certara_pal, ...)
+        palette=certara_pal(...))
 }
 
 #' @rdname theme_certara
@@ -290,7 +291,7 @@ scale_fill_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="fill",
         scale_name="certara",
-        palette=certara_pal, ...)
+        palette=certara_pal(...))
 }
 
 #' @rdname theme_certara
@@ -299,8 +300,8 @@ scale_colour_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="colour",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(4)[c(1,4,3)]),
-        guide=guide, ...)
+        palette=scales::gradient_n_pal(certara_pal(c(2, 1, 3))()),
+        guide=guide)
 }
 
 #' @rdname theme_certara
@@ -309,37 +310,7 @@ scale_fill_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="fill",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(4)[c(1,4,3)]),
-        guide=guide, ...)
+        palette=scales::gradient_n_pal(certara_pal(c(2, 1, 3))()),
+        guide=guide)
 }
 
-## TEST
-if (FALSE) {
-    source("theme_certara.R")
-    theme_set(theme_certara())
-    #theme_set(theme_certara_grid())
-    scale_colour_discrete <- function(...) scale_color_certara(...)
-    scale_fill_discrete <- function(...) scale_fill_certara(...)
-
-    set.seed(123)
-    x <- rnorm(100)
-    g <- rep(0:5, len=100)
-    y <- rnorm(100, 0.33*x + 0.2*g, 0.1)
-    g <- factor(g, labels=c("xxx", "yyy", "zzz", "aaa", "bbb", "ccc"))
-
-    gl <- guide_legend(title.position="top")
-    p <- ggplot(data.frame(x, y, g), aes(x=x, y=y, color=g, shape=g, linetype=g, fill=g)) +
-        geom_point() +
-        geom_smooth(method="lm", se=T) +
-        labs(title="TEST", subtitle="test-test") +
-        guides(colour=gl, fill=gl)
-    p
-
-    p + theme_certara_grid()
-    p + scale_y_continuous(position = "right")
-
-    p + facet_wrap(~ g)
-
-    v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
-    v + scale_fill_certara_c()
-}

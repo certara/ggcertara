@@ -56,7 +56,7 @@ set.seed(123)
 x <- rnorm(100) + 3
 g <- rep(0:5, len=100)
 y <- exp(rnorm(100, 0.33*x + 0.2*g, 0.1))
-g <- factor(g, labels=c("xxx", "yyy", "zzz", "aaa", "bbb", "ccc"))
+g <- factor(g, labels=do.call(paste0, rep(list(letters[1:6]), 3)))
 
 theme_set(theme_certara())
 scale_colour_discrete <- function(...) scale_color_certara(...)
@@ -80,7 +80,7 @@ p + scale_y_log10() + annotation_logticks(sides="l") + theme_certara_grid()
 v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 v + scale_fill_certara_c()
 
-dat <- data.frame(x=1:17)
+dat <- data.frame(x=1:12)
 p <- ggplot(dat) +
     geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
     labs(color="")
