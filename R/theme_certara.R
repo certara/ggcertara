@@ -236,7 +236,7 @@ theme_certara_grid <- function(base_size=16, base_family="",
 
 #' Certara color palette
 #'
-#' @param choose The indices of colors requested in the palette (optional). If
+#' @param pick The indices of colors requested in the palette (optional). If
 #' missing, all available colors will be included. The palette currently
 #' contains 12 distinct colors; if more colors are needed for a plot these 12
 #' colors will be recycled.
@@ -245,7 +245,7 @@ theme_certara_grid <- function(base_size=16, base_family="",
 #' @export
 #' @examples
 #' certara_pal()(8)
-certara_pal <- function(choose) {
+certara_pal <- function(pick) {
     cols <- c(
         "#279594",
         "#2b398b",
@@ -258,10 +258,10 @@ certara_pal <- function(choose) {
         "#ee3124",
         "#8d59a6",
         "#877e4b",
-        "#971b22")
-
-    if (!missing(choose)) {
-        cols <- cols[choose]
+        "#971b22",
+        "#3ae07a")
+    if (!missing(pick)) {
+        cols <- cols[pick]
     }
 
     function(n=length(cols)) {
