@@ -4,6 +4,9 @@
 #' @inheritParams ggplot2::continuous_scale
 #' @param ... Other arguments passed on to \code{\link[ggplot2]{discrete_scale}()} or
 #' \code{\link[ggplot2]{continuous_scale}()}.
+#' @details There are 3 variants of the theme: no grid
+#' (\code{theme_certara()}), full grid (\code{theme_certara_grid()}), and
+#' horizontal grid lines only (\code{theme_certara_hgrid()}).
 #' @return An object of class \code{\link[ggplot2]{theme}()}.
 #' @import ggplot2
 #' @export
@@ -40,11 +43,15 @@
 #' v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 #' v + scale_fill_certara_c()
 #'
-#' dat <- data.frame(x=1:12)
+#' dat <- data.frame(x=1:8)
 #' p <- ggplot(dat) +
-#'     geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
-#'     labs(color="")
+#'     geom_col(aes(x=x, y=1, fill=factor(x)), color=NA) +
+#'     labs(fill="")
 #' p
+#' p + scale_fill_certara(palnum=2)
+#' p + scale_fill_certara(palnum=3)
+#' p + scale_fill_certara(palnum=4)
+#' p + scale_fill_certara(palnum=5)
 #'
 #' }
 theme_certara <- function(base_size=16, base_family="",
@@ -83,7 +90,7 @@ theme_certara <- function(base_size=16, base_family="",
 
         axis.text=element_text(
             size=rel(0.7), 
-            colour="grey30"),
+            colour="grey40"),
         
         axis.text.x=element_text(
             margin=margin(t=0.8*half_line/2),
@@ -103,9 +110,17 @@ theme_certara <- function(base_size=16, base_family="",
             margin=margin(l=0.8*half_line/2),
             hjust=0.5),
         
-        axis.ticks=element_line(colour="grey20"), 
+        axis.ticks=element_line(colour="grey40", size=0.3), 
 
-        axis.ticks.length=unit(half_line/2, "pt"),
+        axis.ticks.length=unit(half_line, "pt"),
+        axis.ticks.length.x=unit(half_line, "pt"),
+        axis.ticks.length.x.top=unit(half_line, "pt"),
+        axis.ticks.length.x.bottom=unit(half_line, "pt"),
+        axis.ticks.length.y=unit(half_line, "pt"),
+        axis.ticks.length.y.left=unit(half_line, "pt"),
+        axis.ticks.length.y.right=unit(half_line, "pt"),
+
+        axis.title=element_text(colour="grey40"),
         
         axis.title.x=element_text(
             margin=margin(t=half_line/2), 
@@ -161,9 +176,11 @@ theme_certara <- function(base_size=16, base_family="",
         
         panel.border=element_rect(
             fill=NA,
-            colour="grey20"),
+            colour="grey60",
+            size=0.3),
 
         panel.grid=element_blank(), 
+        panel.grid.major=element_blank(), 
         panel.grid.minor=element_blank(),
 
         panel.spacing=unit(half_line, "pt"),
@@ -230,41 +247,89 @@ theme_certara_grid <- function(base_size=16, base_family="",
         base_family=base_family,
         base_line_size=base_line_size,
         base_rect_size=base_rect_size) %+replace% theme(
-        panel.grid=element_line(colour="grey92"), 
-        panel.grid.minor=element_line(size=rel(1.0)))
+        panel.grid.major=element_line(colour="grey90", size=0.3), 
+        panel.grid.minor=element_line(colour="grey90", size=0.3))
 }
 
-#' Certara color palette
+#' @rdname theme_certara
+#' @export
+theme_certara_hgrid <- function(base_size=16, base_family="",
+    base_line_size=base_size/22, base_rect_size=base_size/22) {
+    theme_certara(
+        base_size=base_size,
+        base_family=base_family,
+        base_line_size=base_line_size,
+        base_rect_size=base_rect_size) %+replace% theme(
+        panel.grid.major.y=element_line(colour="grey90", size=0.3), 
+        panel.grid.minor.y=element_line(colour="grey90", size=0.3))
+}
+
+#' Certara color palettes
 #'
-#' @param pick The indices of colors requested in the palette (optional). If
-#' missing, all available colors will be included. The palette currently
-#' contains 12 distinct colors; if more colors are needed for a plot these 12
-#' colors will be recycled.
+#' @param palnum Choose from 1 of 5 different color palettes with 8 colors each.
 #' @return A palette function, that returns a vector of hex codes for the
 #' colors in the palette when called with a single integer argument.
 #' @export
 #' @examples
-#' certara_pal()(8)
-certara_pal <- function(pick) {
-    cols <- c(
-        "#279594",
-        "#2b398b",
-        "#d89a17",
-        "#69899e",
-        "#d80b8c",
-        "#6d405d",
-        "#f26522",
-        "#4982ac",
-        "#ee3124",
-        "#8d59a6",
-        "#877e4b",
-        "#971b22",
-        "#3ae07a")
-    if (!missing(pick)) {
-        cols <- cols[pick]
-    }
+#' certara_pal(1)(8)
+certara_pal <- function(palnum=1) {
 
-    function(n=length(cols)) {
+    pal.list <- list(
+
+        # Palette 1
+        c("#29398c",  # dark blue
+          "#b8a394",  # beige
+          "#f98068",  # salmon
+          "#72cbed",  # light blue
+          "#7059a6",  # purple
+          "#b7a148",  # yellow-green
+          "#067f97",  # dark cyan
+          "#475c6b"), # charcoal
+
+        # Palette 2
+        c("#4682ac",  # blue
+          "#ee3124",  # red
+          "#fdbb2f",  # yellow-gold
+          "#6d405d",  # burgundy?
+          "#093b6d",  # dark blue
+          "#2f71fd",  # bright blue
+          "#336343",  # dark green
+          "#52ccbb"), # mint
+
+        # Palette 3
+        c("#093b6d",  # dark blue
+          "#5cc8f7",  # light blue
+          "#d64d20",  # reddish orange
+          "#32a17e",  # sort of green
+          "#d89a17",  # darkish yellow
+          "#7059a6",  # purple
+          "#336343",  # dark green
+          "#9c8777"), # beige?
+
+        # Palette 4
+        c("#279594",  # teal
+          "#e07070",  # pink
+          "#5cc8f7",  # light blue
+          "#ef761b",  # orange
+          "#113df2",  # bright blue
+          "#f2c611",  # yellow
+          "#52ccbb",  # mint
+          "#a52f43"), # dark red
+
+        # Palette 5
+        c("#29398C",  # dark blue
+          "#336343",  # dark green
+          "#803333",  # dark red
+          "#B35D1B",  # dark orange
+          "#067F97",  # dark cyan
+          "#B7A148",  # dark yellow
+          "#7059A6",  # purple
+          "#75604D")  # brown
+    )
+
+    cols <- unlist(pal.list[((1:length(pal.list) + (palnum - 2)) %% length(pal.list)) + 1])
+
+    function(n=8) {
         if (n == 0) {
             stop("Must request at least one color.")
         }
@@ -300,7 +365,7 @@ scale_colour_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="colour",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(c(2, 1, 3))()),
+        palette=scales::gradient_n_pal(certara_pal(1)(3)),
         guide=guide)
 }
 
@@ -310,7 +375,7 @@ scale_fill_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="fill",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(c(2, 1, 3))()),
+        palette=scales::gradient_n_pal(certara_pal(1)(3)),
         guide=guide)
 }
 
