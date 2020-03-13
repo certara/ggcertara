@@ -2,23 +2,20 @@
 % Please edit documentation in R/theme_certara.R
 \name{certara_pal}
 \alias{certara_pal}
-\title{Certara color palette}
+\title{Certara color palettes}
 \usage{
-certara_pal(choose)
+certara_pal(palnum = 1)
 }
 \arguments{
-\item{choose}{The indices of colors requested in the palette (optional). If
-missing, all available colors will be included. The palette currently
-contains 12 distinct colors; if more colors are needed for a plot these 12
-colors will be recycled.}
+\item{palnum}{Choose from 1 of 5 different color palettes with 8 colors each.}
 }
 \value{
 A palette function, that returns a vector of hex codes for the
 colors in the palette when called with a single integer argument.
 }
 \description{
-Certara color palette
+Certara color palettes
 }
 \examples{
-certara_pal()(8)
+certara_pal(1)(8)
 }
