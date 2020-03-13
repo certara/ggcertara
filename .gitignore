@@ -5,3 +5,4 @@
 *.temp
 temp.*
 
+.Rproj.user
