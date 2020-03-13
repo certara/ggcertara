@@ -3,6 +3,7 @@
 \name{theme_certara}
 \alias{theme_certara}
 \alias{theme_certara_grid}
+\alias{theme_certara_hgrid}
 \alias{scale_colour_certara}
 \alias{scale_color_certara}
 \alias{scale_fill_certara}
@@ -10,11 +11,26 @@
 \alias{scale_fill_certara_c}
 \title{A ggplot2 theme for Certara CSC-iDD}
 \usage{
-theme_certara(base_size = 16, base_family = "",
-  base_line_size = base_size/22, base_rect_size = base_size/22)
+theme_certara(
+  base_size = 11,
+  base_family = "",
+  base_line_size = base_size/22,
+  base_rect_size = base_size/22
+)
 
-theme_certara_grid(base_size = 16, base_family = "",
-  base_line_size = base_size/22, base_rect_size = base_size/22)
+theme_certara_grid(
+  base_size = 11,
+  base_family = "",
+  base_line_size = base_size/22,
+  base_rect_size = base_size/22
+)
+
+theme_certara_hgrid(
+  base_size = 11,
+  base_family = "",
+  base_line_size = base_size/22,
+  base_rect_size = base_size/22
+)
 
 scale_colour_certara(...)
 
@@ -39,13 +55,18 @@ scale_fill_certara_c(..., guide = "colourbar")
 \code{\link[ggplot2]{continuous_scale}()}.}
 
 \item{guide}{A function used to create a guide or its name. See
-\code{\link[=guides]{guides()}} for more info.}
+\code{\link[ggplot2:guides]{guides()}} for more info.}
 }
 \value{
 An object of class \code{\link[ggplot2]{theme}()}.
 }
 \description{
 A ggplot2 theme for Certara CSC-iDD
+}
+\details{
+There are 3 variants of the theme: no grid
+(\code{theme_certara()}), full grid (\code{theme_certara_grid()}), and
+horizontal grid lines only (\code{theme_certara_hgrid()}).
 }
 \examples{
 
@@ -80,11 +101,15 @@ p + scale_y_log10() + annotation_logticks(sides="l") + theme_certara_grid()
 v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 v + scale_fill_certara_c()
 
-dat <- data.frame(x=1:12)
+dat <- data.frame(x=1:8)
 p <- ggplot(dat) +
-    geom_vline(aes(xintercept=x, color=factor(x)), size=10) +
-    labs(color="")
+    geom_col(aes(x=x, y=1, fill=factor(x)), color=NA) +
+    labs(fill="")
 p
+p + scale_fill_certara(palnum=2)
+p + scale_fill_certara(palnum=3)
+p + scale_fill_certara(palnum=4)
+p + scale_fill_certara(palnum=5)
 
 }
 }

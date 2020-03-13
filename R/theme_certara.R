@@ -54,7 +54,7 @@
 #' p + scale_fill_certara(palnum=5)
 #'
 #' }
-theme_certara <- function(base_size=16, base_family="",
+theme_certara <- function(base_size=11, base_family="",
     base_line_size=base_size/22, base_rect_size=base_size/22) {
 
     half_line <- base_size/2
@@ -240,7 +240,7 @@ theme_certara <- function(base_size=16, base_family="",
 
 #' @rdname theme_certara
 #' @export
-theme_certara_grid <- function(base_size=16, base_family="",
+theme_certara_grid <- function(base_size=11, base_family="",
     base_line_size=base_size/22, base_rect_size=base_size/22) {
     theme_certara(
         base_size=base_size,
@@ -253,7 +253,7 @@ theme_certara_grid <- function(base_size=16, base_family="",
 
 #' @rdname theme_certara
 #' @export
-theme_certara_hgrid <- function(base_size=16, base_family="",
+theme_certara_hgrid <- function(base_size=11, base_family="",
     base_line_size=base_size/22, base_rect_size=base_size/22) {
     theme_certara(
         base_size=base_size,
@@ -281,8 +281,8 @@ certara_pal <- function(palnum=1) {
           "#b8a394",  # beige
           "#f98068",  # salmon
           "#72cbed",  # light blue
-          "#7059a6",  # purple
           "#b7a148",  # yellow-green
+          "#7059a6",  # purple
           "#067f97",  # dark cyan
           "#475c6b"), # charcoal
 
