@@ -39,7 +39,8 @@ knitr::kable(head(nmtable1))
 
 #' When called without a `data` argument, the `gof()` function will actually
 #' search the current directory for a CSV file that looks like it contains the
-#' information it requires (i.e., has columns `dv`, `pred`, `ipred` and so on).
+#' information it requires (i.e., has columns `dv`, `pred`, `ipred` and so on;
+#' the data will also be filtered on an `mdv` column, if present).
 #' Alternatively, the `sdtab` file that is commonly used with PsN/Xpose will
 #' also be detected.
 #+ fig.width=6, fig.height=9
@@ -147,9 +148,25 @@ g &
 
 #' `patchwork` is smart enough to produce a single legend for both panels.
 
+#' ## Adding geoms and annotations
+
+g <- gof(dat, panels=8:9)
+
+#+ fig.width=6, fig.height=3
+g & geom_smooth(method="lm", color="#52ccbb", se=F, size=1)
+
+g <- gof(dat, panels=3:4)
+
+#+ fig.width=6, fig.height=3
+g &
+  geom_hline(yintercept=1.2, linetype="dashed") &
+  geom_text(data=data.frame(x=Inf, y=1.2), aes(x=x, y=y),
+    label="LLOQ = 1.2 ng/mL", hjust=1.1, vjust=-0.5, size=3)
+
 #' # R session information
 
 sessionInfo()
 
 
+#+ echo=F
 # vim: ts=2 sw=2 et
