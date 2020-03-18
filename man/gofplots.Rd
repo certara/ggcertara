@@ -14,21 +14,31 @@
 \alias{gof_cwres_qqplot}
 \title{Basic gof plots}
 \usage{
-gof_cwres_vs_pred(data, labels = default.labels)
+gof_cwres_vs_pred(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_cwres_vs_time(data, labels = default.labels)
+gof_cwres_vs_time(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_cwres_vs_tad(data, labels = default.labels)
+gof_cwres_vs_tad(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_absiwres_vs_ipred(data, labels = default.labels)
+gof_absiwres_vs_ipred(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_absiwres_vs_time(data, labels = default.labels)
+gof_absiwres_vs_time(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_absiwres_vs_tad(data, labels = default.labels)
+gof_absiwres_vs_tad(data, labels = default.labels, baseplot = gof_baseplot)
 
-gof_dv_vs_ipred(data, labels = default.labels, log_xy = F)
+gof_dv_vs_ipred(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_xy = F
+)
 
-gof_dv_vs_pred(data, labels = default.labels, log_xy = F)
+gof_dv_vs_pred(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_xy = F
+)
 
 gof_cwres_histogram(data, labels = default.labels)
 
@@ -38,6 +48,9 @@ gof_cwres_qqplot(data, labels = default.labels)
 \item{data}{A \code{data.frame}.}
 
 \item{labels}{A named \code{list} of labels.}
+
+\item{baseplot}{A function that returns a \code{ggplot} object to use as the
+base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{log_xy}{If \code{TRUE} then log-scale will be used for both x- and y- axes.}
 }

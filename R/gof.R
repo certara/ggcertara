@@ -209,10 +209,33 @@ gof_read_data <- function(rundir=getwd()) {
   return(data)
 }
 
+#' Base plot for gof plots
+#'
+#' This is the default base plot for goodness-of-fit diagnostic plots. It
+#' produces a scatterplot with a LOESS smoother. The points are blue, and the
+#' LOESS smoother is red. The plot has a square aspect ratio. It uses the
+#' Certara theme. Other elements (e.g. reference lines) can be added to the
+#' plot afterwards. The default aesthetics (x and y) and labels are also added
+#' subsequently. The base plot can be overridden using the \code{baseplot}
+#' parameter of the specific GOF function.
+#'
+#' @param data A \code{data.frame}.
+#' @return  A \code{ggplot} object.
+#' @export
+gof_baseplot <- function(data) {
+  ggplot(data) +
+    geom_point_c() +
+    geom_loess_c() +
+    theme_certara(base_size=11) +
+    theme(aspect.ratio=1)
+}
+
 #' Basic gof plots
 #'
 #' @param data A \code{data.frame}.
 #' @param labels A named \code{list} of labels.
+#' @param baseplot A function that returns a \code{ggplot} object to use as the
+#' base for all scatterplots (histograms and QQ-plots are unaffected).
 #' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y- axes.
 #' @name gofplots
 NULL
@@ -220,106 +243,78 @@ NULL
 #' Plot CWRES vs. PRED
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_pred <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$pred, y=.data$cwres)) +
+gof_cwres_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$pred, y=.data$cwres) +
     labs(x=labels$pred, y=labels$cwres) +
     geom_blank(aes(x=.data$pred, y=-.data$cwres)) + # Trick to force symmetry
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_time <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$time, y=.data$cwres)) +
+gof_cwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$time, y=.data$cwres) +
     labs(x=labels$time, y=labels$cwres) +
     geom_blank(aes(x=.data$time, y=-.data$cwres)) + # Trick to force symmetry
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_tad <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$tad, y=.data$cwres)) +
+gof_cwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$tad, y=.data$cwres) +
     labs(x=labels$tad, y=labels$cwres) +
     geom_blank(aes(x=.data$tad, y=-.data$cwres)) + # Trick to force symmetry
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_ipred <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$ipred, y=abs(.data$iwres))) +
+gof_absiwres_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$ipred, y=abs(.data$iwres)) +
     labs(x=labels$ipred, y=sprintf("|%s|", labels$iwres)) +
     expand_limits(y=0) +
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_time <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$time, y=abs(.data$iwres))) +
+gof_absiwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$time, y=abs(.data$iwres)) +
     labs(x=labels$time, y=sprintf("|%s|", labels$iwres)) +
     expand_limits(y=0) +
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_tad <- function(data, labels=default.labels) {
-  ggplot(data, aes(x=.data$tad, y=abs(.data$iwres))) +
+gof_absiwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot) {
+  baseplot(data) +
+    aes(x=.data$tad, y=abs(.data$iwres)) +
     labs(x=labels$tad, y=sprintf("|%s|", labels$iwres)) +
     expand_limits(y=0) +
-    #coord_fixed(ratio=1) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
 }
 
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_ipred <- function(data, labels=default.labels, log_xy=F) {
-  g <- ggplot(data, aes(x=.data$ipred, y=.data$dv)) +
+gof_dv_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F) {
+  g <- baseplot(data) +
+    aes(x=.data$ipred, y=.data$dv) +
     labs(x=labels$ipred, y=labels$dv) +
     geom_blank(aes(x=.data$dv, y=.data$ipred)) + # Trick to force symmetry
-    coord_fixed(ratio=1) +
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
   if (isTRUE(log_xy)) {
     g <- log_xy(g)
   }
@@ -329,16 +324,12 @@ gof_dv_vs_ipred <- function(data, labels=default.labels, log_xy=F) {
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_pred <- function(data, labels=default.labels, log_xy=F) {
-  g <- ggplot(data, aes(x=.data$pred, y=.data$dv)) +
+gof_dv_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F) {
+  g <- baseplot(data) +
+    aes(x=.data$pred, y=.data$dv) +
     labs(x=labels$pred, y=labels$dv) +
     geom_blank(aes(x=.data$dv, y=.data$pred)) + # Trick to force symmetry
-    coord_fixed(ratio=1) +
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
-    geom_point_c() +
-    geom_loess_c() +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
   if (isTRUE(log_xy)) {
     g <- log_xy(g)
   }
@@ -365,7 +356,7 @@ gof_cwres_histogram <- function(data, labels=default.labels) {
 #' @rdname gofplots
 #' @export
 gof_cwres_qqplot <- function(data, labels=default.labels) {
-  lim.qq <- with(stats::qqnorm(data$cwres, plot.it=F), range(c(x, y)))
+  lim.qq <- with(stats::qqnorm(data$cwres, plot.it=FALSE), range(c(x, y)))
   ggplot(data, aes(sample=.data$cwres)) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_fixed(ratio=1, xlim=lim.qq, ylim=lim.qq) +
@@ -381,6 +372,7 @@ gof_cwres_qqplot <- function(data, labels=default.labels) {
 #' @export
 gof_list <- function(data=NULL,
                 labels=default.labels,
+                baseplot=gof_baseplot,
                 rundir=getwd())
 {
   if (is.null(data)) {
@@ -389,41 +381,41 @@ gof_list <- function(data=NULL,
 
   p <- list()
 
-  # DV vs. IPRED linear scale
-  p[[1]] <- gof_dv_vs_ipred(data, labels)
-
-  # DV vs. PRED linear scale
-  p[[2]] <- gof_dv_vs_pred(data, labels)
-
-  # DV vs. IPRED log scale
-  p[[3]] <- gof_dv_vs_ipred(data, labels, log_xy=TRUE)
-
-  # DV vs. PRED log scale
-  p[[4]] <- gof_dv_vs_pred(data, labels, log_xy=TRUE)
-
-  # CWRES vs. PRED
-  p[[5]] <- gof_cwres_vs_pred(data, labels)
-
-  # CWRES vs. TIME
-  p[[6]] <- gof_cwres_vs_time(data, labels)
-
-  # CWRES vs. TAD
-  p[[7]] <- gof_cwres_vs_tad(data, labels)
-
-  # |IWRES| vs. IPRED
-  p[[8]] <- gof_absiwres_vs_ipred(data, labels)
-
-  # |IWRES| vs. TIME
-  p[[9]] <- gof_absiwres_vs_time(data, labels)
-
-  # |IWRES| vs. TAD
-  p[[10]] <- gof_absiwres_vs_tad(data, labels)
-
   # Histogram of CWRES
-  p[[11]] <- gof_cwres_histogram(data, labels)
+  p[[1]] <- gof_cwres_histogram(data, labels)
 
   # QQ-plot of CWRES
-  p[[12]] <- gof_cwres_qqplot(data, labels)
+  p[[2]] <- gof_cwres_qqplot(data, labels)
+
+  # DV vs. IPRED linear scale
+  p[[3]] <- gof_dv_vs_ipred(data, labels)
+
+  # DV vs. PRED linear scale
+  p[[4]] <- gof_dv_vs_pred(data, labels)
+
+  # DV vs. IPRED log scale
+  p[[5]] <- gof_dv_vs_ipred(data, labels, log_xy=TRUE)
+
+  # DV vs. PRED log scale
+  p[[6]] <- gof_dv_vs_pred(data, labels, log_xy=TRUE)
+
+  # CWRES vs. PRED
+  p[[7]] <- gof_cwres_vs_pred(data, labels)
+
+  # CWRES vs. TIME
+  p[[8]] <- gof_cwres_vs_time(data, labels)
+
+  # CWRES vs. TAD
+  p[[9]] <- gof_cwres_vs_tad(data, labels)
+
+  # |IWRES| vs. IPRED
+  p[[10]] <- gof_absiwres_vs_ipred(data, labels)
+
+  # |IWRES| vs. TIME
+  p[[11]] <- gof_absiwres_vs_time(data, labels)
+
+  # |IWRES| vs. TAD
+  p[[12]] <- gof_absiwres_vs_tad(data, labels)
 
   p
 }
@@ -450,9 +442,10 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' and column in which the panels are to be layed out (for multiple panels).
 #' @export
 gof <- function(data=NULL,
-                panels=c(1, 2, 5, 6, 7, 8),
+                panels=c(3, 4, 7, 8, 9, 10),
                 layout=c(ceiling(length(panels)/2), 2),
                 labels=default.labels,
+                baseplot=gof_baseplot,
                 rundir=getwd())
 {
 

@@ -89,21 +89,21 @@ dat <- subset(dat, mdv==0)
 #' panel are numbered.
 
 #' Using the `panels` argument, single or multiple panels can be selected.  For
-#' example, to prduce both a histogram and QQ-plot of CWRES, select panels 11
-#' and 12:
+#' example, to prduce both a histogram and QQ-plot of CWRES, select panels 1
+#' and 2:
 #+ fig.width=6, fig.height=3
-gof(dat, panels=c(11,12))
+gof(dat, panels=1:2)
 
-#' To obtain just a plot of DV vs. IPRED on log-log scale, select panel 3:
+#' To obtain just a plot of DV vs. IPRED on log-log scale, select panel 5:
 #+ fig.width=3, fig.height=3
-gof(dat, panels=3)
+gof(dat, panels=5)
 
 #' Individual panels can also be obtain in 2 other ways.
 #' The first is to select the desired panel from the list of panels returned by
 #' `gof_list()` (which returns a list of all standard panels):
 #+ fig.width=3, fig.height=3
 p <- gof_list(dat)
-p[[3]]
+p[[5]]
 
 #' The other way is to use a named function:
 #+ fig.width=3, fig.height=3
@@ -127,7 +127,7 @@ dat$outlier <- factor(abs(dat$cwres) > 2.5, labels=c("|CWRES| \U{2264} 2.5", "|C
 
 #' For a single panel, you can just modify the `ggplot` object:
 
-g <- gof(dat, panels=1)
+g <- gof(dat, panels=3)
 
 #+ fig.width=4, fig.height=4
 g +
@@ -138,7 +138,7 @@ g +
 #' For a `patchwork` object (multiple panels), you can do the same thing by
 #' replacing the `+` operator with a `%`:
 
-g <- gof(dat, panels=1:2)
+g <- gof(dat, panels=3:4)
 
 #+ fig.width=6, fig.height=4
 g &
@@ -150,12 +150,12 @@ g &
 
 #' ## Adding geoms and annotations
 
-g <- gof(dat, panels=8:9)
+g <- gof(dat, panels=10:11)
 
 #+ fig.width=6, fig.height=3
 g & geom_smooth(method="lm", color="#52ccbb", se=F, size=1)
 
-g <- gof(dat, panels=3:4)
+g <- gof(dat, panels=5:6)
 
 #+ fig.width=6, fig.height=3
 g &

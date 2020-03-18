@@ -6,15 +6,21 @@
 \alias{gof}
 \title{List of gof plots}
 \usage{
-gof_list(data = NULL, labels = default.labels, rundir = getwd())
+gof_list(
+  data = NULL,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  rundir = getwd()
+)
 
 gof_layout(p, layout = c(ceiling(length(p)/2), 2))
 
 gof(
   data = NULL,
-  panels = c(1, 2, 5, 6, 7, 8),
+  panels = c(3, 4, 7, 8, 9, 10),
   layout = c(ceiling(length(panels)/2), 2),
   labels = default.labels,
+  baseplot = gof_baseplot,
   rundir = getwd()
 )
 }
@@ -22,6 +28,9 @@ gof(
 \item{data}{A \code{data.frame}.}
 
 \item{labels}{A named \code{list} of labels.}
+
+\item{baseplot}{A function that returns a \code{ggplot} object to use as the
+base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{rundir}{A directory in which to search.}
 
