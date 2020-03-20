@@ -8,6 +8,14 @@ gof_baseplot(data, highlight, ...)
 }
 \arguments{
 \item{data}{A \code{data.frame}.}
+
+\item{highlight}{(Optional) A 2-level \code{factor}, evaluated within
+\code{data}, indicating a subset of points that are to be highlighted on the
+plot.  Typically, these may be outliers, or a specific subset of interest.
+Those points belonging to the subset will be drawn with a different color
+and symbol, and a legend will appear as well.}
+
+\item{...}{Additional arguments (ignored).}
 }
 \value{
 A \code{ggplot} object.

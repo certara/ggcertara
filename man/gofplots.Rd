@@ -90,7 +90,14 @@ gof_cwres_qqplot(data, labels = default.labels)
 \item{baseplot}{A function that returns a \code{ggplot} object to use as the
 base for all scatterplots (histograms and QQ-plots are unaffected).}
 
-\item{log_xy}{If \code{TRUE} then log-scale will be used for both x- and y- axes.}
+\item{log_x}{If \code{TRUE} then log-scale will be used for the x-axis.}
+
+\item{...}{Additional arguments, passed to \code{baseplot}.}
+
+\item{log_xy}{If \code{TRUE} then log-scale will be used for both x- and y-axes.}
+}
+\value{
+A \code{ggplot} object.
 }
 \description{
 Basic gof plots

@@ -25,13 +25,19 @@
 
 #+ echo=FALSE
 knitr::opts_knit$set(root.dir=system.file("sample-data", package="ggcertara"))
-knitr::opts_chunk$set(warning=FALSE, message=TRUE, comment="#>", dpi=300, out.width="100%")
+knitr::opts_chunk$set(warning=FALSE, message=TRUE, comment="#>", dpi=300, out.width="80%")
+#+
+
+#' # Setup
+
+#' Before starting, load the `ggplot2` and `ggcertara` packages, and set the
+#' default `ggplot` theme to `theme_certara()`:
+
 suppressPackageStartupMessages({
   library(ggplot2)
   library(ggcertara)
 })
-#+
-
+theme_set(theme_certara())
 
 #' # Basic usage
 #'
@@ -56,7 +62,7 @@ knitr::kable(head(nmtable1))
 #' the data will also be filtered on an `mdv` column, if present).
 #' Alternatively, the `sdtab` file that is commonly used with PsN/Xpose will
 #' also be detected.
-#+ fig.width=6, fig.height=9
+#+ fig.width=6, fig.height=9, out.width="70%"
 gof()
 
 #' By default, the `gof()` function produces a figure with 6 panels arranged in
@@ -156,11 +162,10 @@ dat$outlier <- factor(abs(dat$cwres) > 2.5, labels=c("|CWRES| \U{2264} 2.5", "|C
 
 #' Then, use th `highlight` option, like this:
 
-#+ fig.width=4, fig.height=4, out.width="60%"
-gof(dat, panels=3, highlight=outlier)
+#+ fig.width=6, fig.height=10, out.width="70%"
+gof(dat, highlight=outlier)
 
-#+ fig.width=6, fig.height=4
-gof(dat, panels=3:4, highlight=outlier)
+#' This feature should be used sparingly.
 
 #' ## Changing aesthetics (colors, etc.)
 

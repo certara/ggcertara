@@ -121,6 +121,11 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
   draw_key = draw_key_smooth
 )
 
+#' A coordinate system that is symmetric about $y=0$.
+#'
+#' This is a Cartesian coordinate system that is centered vertically at $y=0$.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
 coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
   ggproto(NULL, CoordSymmY,
     limits = list(x = xlim, y = ylim),
@@ -129,6 +134,10 @@ coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
   )
 }
 
+#' @rdname coord_symm_y
+#' @format NULL
+#' @usage NULL
+#' @export
 CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
   setup_panel_params = function(self, scale_x, scale_y, params = list()) {
     scale_y$range$range <- c(-1, 1)*max(abs(scale_y$range$range))
@@ -137,6 +146,11 @@ CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
   }
 )
 
+#' A coordinate system that is symmetric about $y=x$.
+#'
+#' This is a Cartesian coordinate system that has the same limits in both $x$ and $y$.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
 coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
   ggproto(NULL, CoordSymmXY,
     limits = list(x = xlim, y = ylim),
@@ -145,6 +159,10 @@ coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") 
   )
 }
 
+#' @rdname coord_symm_xy
+#' @format NULL
+#' @usage NULL
+#' @export
 CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
   setup_panel_params = function(self, scale_x, scale_y, params = list()) {
     lim_xy <- c(
@@ -160,6 +178,7 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
 #' Use log scales
 #'
 #' @param g A \code{ggplot2} object.
+#' @return g A \code{ggplot2} object with log scales in $x$, $y$ or both.
 #' @name logscales
 NULL
 
@@ -256,6 +275,12 @@ gof_read_data <- function(rundir=getwd()) {
 #' parameter of the specific GOF function.
 #'
 #' @param data A \code{data.frame}.
+#' @param highlight (Optional) A 2-level \code{factor}, evaluated within
+#' \code{data}, indicating a subset of points that are to be highlighted on the
+#' plot.  Typically, these may be outliers, or a specific subset of interest.
+#' Those points belonging to the subset will be drawn with a different color
+#' and symbol, and a legend will appear as well.
+#' @param ... Additional arguments (ignored).
 #' @return  A \code{ggplot} object.
 #' @export
 gof_baseplot <- function(data, highlight, ...) {
@@ -270,13 +295,24 @@ gof_baseplot <- function(data, highlight, ...) {
     g <- g + aes(color={{ highlight }}, shape={{ highlight }}, size={{ highlight }}, alpha={{ highlight }}) +
       guides(colour=gl, shape=gl, size=gl, alpha=gl) +
       scale_colour_manual(values=c("#2b398b", "#ee3124")) +
-      scale_shape_manual(values=c(19, 4)) +
+      scale_shape_manual(values=c(19, 13)) +
       scale_size_manual(values=c(1.5, 3)) +
       scale_alpha_manual(values=c(0.3, 1))
   }
   g
 }
 
+#' A generic function for residual plots
+#'
+#' @param data A \code{data.frame}.
+#' @param x,y Numeric vectors, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param baseplot A function that returns a \code{ggplot} object to use as the
+#' base.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @return  A \code{ggplot} object.
+#' @export
 gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
   xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
   ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
@@ -292,6 +328,8 @@ gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplo
   g
 }
 
+#' @rdname gof_residual
+#' @export
 gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
   xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
   ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
@@ -307,6 +345,20 @@ gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_base
   g
 }
 
+#' A generic function for identity plots
+#'
+#' Identity plots have symmetric x- and y-axes, a reference line at $y=x$, and
+#' a fixed aspect ration. Typical examples are DV vs. PRED and DV vs. IPRED.
+#'
+#' @param data A \code{data.frame}.
+#' @param x,y Numeric vectors, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param baseplot A function that returns a \code{ggplot} object to use as the
+#' base.
+#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y-axes.
+#' @return  A \code{ggplot} object.
+#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @export
 gof_identity <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
   xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
   ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
@@ -327,7 +379,10 @@ gof_identity <- function(data, x, y, labels=default.labels, baseplot=gof_baseplo
 #' @param labels A named \code{list} of labels.
 #' @param baseplot A function that returns a \code{ggplot} object to use as the
 #' base for all scatterplots (histograms and QQ-plots are unaffected).
-#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y- axes.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y-axes.
+#' @return  A \code{ggplot} object.
+#' @param ... Additional arguments, passed to \code{baseplot}.
 #' @name gofplots
 NULL
 
@@ -497,6 +552,7 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' @param p A \code{list} of `ggplot` objects to be laid out.
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
+#' @param ... Additional arguments, passed to \code{baseplot}.
 #' @export
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),

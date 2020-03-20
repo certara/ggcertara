@@ -36,6 +36,8 @@ base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{rundir}{A directory in which to search.}
 
+\item{...}{Additional arguments, passed to \code{baseplot}.}
+
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 
 \item{layout}{A \code{numeric} vector of length 2 giving the number of rows
