@@ -10,7 +10,8 @@ gof_list(
   data = NULL,
   labels = default.labels,
   baseplot = gof_baseplot,
-  rundir = getwd()
+  rundir = getwd(),
+  ...
 )
 
 gof_layout(p, layout = c(ceiling(length(p)/2), 2))
@@ -21,7 +22,8 @@ gof(
   layout = c(ceiling(length(panels)/2), 2),
   labels = default.labels,
   baseplot = gof_baseplot,
-  rundir = getwd()
+  rundir = getwd(),
+  ...
 )
 }
 \arguments{

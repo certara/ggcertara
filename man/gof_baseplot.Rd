@@ -4,7 +4,7 @@
 \alias{gof_baseplot}
 \title{Base plot for gof plots}
 \usage{
-gof_baseplot(data)
+gof_baseplot(data, highlight, ...)
 }
 \arguments{
 \item{data}{A \code{data.frame}.}

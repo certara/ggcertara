@@ -9,10 +9,23 @@
 #'   %\VignetteEngine{knitr::rmarkdown}
 #'   %\VignetteEncoding{UTF-8}
 #' ---
+#' 
+#' <style>
+#' table {
+#'     font-family: "Arial", Arial, sans-serif;
+#'     font-size: 10pt;
+#'     border-collapse: collapse;
+#'     padding: 0px;
+#'     margin: 0px;
+#'     width: 100%;
+#'     display: block;
+#'     overflow: auto;
+#' }
+#' </style>
 
 #+ echo=FALSE
 knitr::opts_knit$set(root.dir=system.file("sample-data", package="ggcertara"))
-knitr::opts_chunk$set(warning=FALSE, message=TRUE, comment="#>")
+knitr::opts_chunk$set(warning=FALSE, message=TRUE, comment="#>", dpi=300, out.width="100%")
 suppressPackageStartupMessages({
   library(ggplot2)
   library(ggcertara)
@@ -86,8 +99,21 @@ dat <- subset(dat, mdv==0)
 #' ## Selecting panels
 
 #' The `gof()` function can easily produce a variety of standard panels. The
-#' panel are numbered.
-
+#' panels are numbered:
+#' 
+#'   1.  Histogram of CWRES
+#'   2.  QQ-plot of CWRES
+#'   3.  DV vs. IPRED linear scale
+#'   4.  DV vs. PRED linear scale
+#'   5.  DV vs. IPRED log scale
+#'   6.  DV vs. PRED log scale
+#'   7.  CWRES vs. PRED
+#'   8.  CWRES vs. TIME
+#'   9.  CWRES vs. TAD
+#'   10. |IWRES| vs. IPRED
+#'   11. |IWRES| vs. TIME
+#'   12. |IWRES| vs. TAD
+#' 
 #' Using the `panels` argument, single or multiple panels can be selected.  For
 #' example, to prduce both a histogram and QQ-plot of CWRES, select panels 1
 #' and 2:
@@ -95,18 +121,20 @@ dat <- subset(dat, mdv==0)
 gof(dat, panels=1:2)
 
 #' To obtain just a plot of DV vs. IPRED on log-log scale, select panel 5:
-#+ fig.width=3, fig.height=3
+#+ fig.width=3, fig.height=3, out.width="50%"
 gof(dat, panels=5)
+
+#' ### The `gof_list` object
 
 #' Individual panels can also be obtain in 2 other ways.
 #' The first is to select the desired panel from the list of panels returned by
 #' `gof_list()` (which returns a list of all standard panels):
-#+ fig.width=3, fig.height=3
+#+ fig.width=3, fig.height=3, out.width="50%"
 p <- gof_list(dat)
 p[[5]]
 
 #' The other way is to use a named function:
-#+ fig.width=3, fig.height=3
+#+ fig.width=3, fig.height=3, out.width="50%"
 gof_dv_vs_ipred(dat, log_xy=T)
 
 #' Note that individual panels are standard `ggplot` objects (that can be
@@ -118,33 +146,41 @@ gof_dv_vs_ipred(dat, log_xy=T)
 
 default.labels
 
-#' ## Changing aesthetics (colors, etc.)
+#' ## Outliers
 
-theme_set(theme_certara())
-gl <- guide_legend("Legend", title.position="top")
+#' To highlight outliers using a special symbol (and color), you first define a
+#' column in the dataset which is a factor with 2 levels (be mindful of the
+#' labels, as these will appear in the legend):
 
 dat$outlier <- factor(abs(dat$cwres) > 2.5, labels=c("|CWRES| \U{2264} 2.5", "|CWRES| > 2.5"))
 
+#' Then, use th `highlight` option, like this:
+
+#+ fig.width=4, fig.height=4, out.width="60%"
+gof(dat, panels=3, highlight=outlier)
+
+#+ fig.width=6, fig.height=4
+gof(dat, panels=3:4, highlight=outlier)
+
+#' ## Changing aesthetics (colors, etc.)
+
 #' For a single panel, you can just modify the `ggplot` object:
 
-g <- gof(dat, panels=3)
-
-#+ fig.width=4, fig.height=4
-g +
-  aes(color=outlier, shape=outlier, size=outlier) +
-  guides(colour=gl, shape=gl, size=gl) +
-  scale_colour_manual(values=c("#2b398b", "#ee3124"))
+#+ fig.width=4, fig.height=4, out.width="60%"
+gof(dat, panels=3, highlight=outlier) +
+  scale_colour_manual(values=c("#7059A6", "#52ccbb")) +
+  scale_shape_manual(values=c(19, 19)) +
+  scale_size_manual(values=c(1, 5))
 
 #' For a `patchwork` object (multiple panels), you can do the same thing by
 #' replacing the `+` operator with a `%`:
 
-g <- gof(dat, panels=3:4)
 
 #+ fig.width=6, fig.height=4
-g &
-  aes(color=outlier, shape=outlier, size=outlier) &
-  guides(colour=gl, shape=gl, size=gl) &
-  scale_colour_manual(values=c("#2b398b", "#ee3124"))
+gof(dat, panels=3:4, highlight=outlier) &
+  scale_colour_manual(values=c("#7059A6", "#52ccbb")) &
+  scale_shape_manual(values=c(19, 19)) &
+  scale_size_manual(values=c(1, 5))
 
 #' `patchwork` is smart enough to produce a single legend for both panels.
 

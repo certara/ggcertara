@@ -14,30 +14,68 @@
 \alias{gof_cwres_qqplot}
 \title{Basic gof plots}
 \usage{
-gof_cwres_vs_pred(data, labels = default.labels, baseplot = gof_baseplot)
+gof_cwres_vs_pred(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
-gof_cwres_vs_time(data, labels = default.labels, baseplot = gof_baseplot)
+gof_cwres_vs_time(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
-gof_cwres_vs_tad(data, labels = default.labels, baseplot = gof_baseplot)
+gof_cwres_vs_tad(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
-gof_absiwres_vs_ipred(data, labels = default.labels, baseplot = gof_baseplot)
+gof_absiwres_vs_ipred(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
-gof_absiwres_vs_time(data, labels = default.labels, baseplot = gof_baseplot)
+gof_absiwres_vs_time(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
-gof_absiwres_vs_tad(data, labels = default.labels, baseplot = gof_baseplot)
+gof_absiwres_vs_tad(
+  data,
+  labels = default.labels,
+  baseplot = gof_baseplot,
+  log_x = F,
+  ...
+)
 
 gof_dv_vs_ipred(
   data,
   labels = default.labels,
   baseplot = gof_baseplot,
-  log_xy = F
+  log_xy = F,
+  ...
 )
 
 gof_dv_vs_pred(
   data,
   labels = default.labels,
   baseplot = gof_baseplot,
-  log_xy = F
+  log_xy = F,
+  ...
 )
 
 gof_cwres_histogram(data, labels = default.labels)
