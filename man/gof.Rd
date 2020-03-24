@@ -10,7 +10,8 @@ gof_list(
   data = NULL,
   labels = default.labels,
   baseplot = gof_baseplot,
-  rundir = getwd()
+  rundir = getwd(),
+  ...
 )
 
 gof_layout(p, layout = c(ceiling(length(p)/2), 2))
@@ -21,7 +22,8 @@ gof(
   layout = c(ceiling(length(panels)/2), 2),
   labels = default.labels,
   baseplot = gof_baseplot,
-  rundir = getwd()
+  rundir = getwd(),
+  ...
 )
 }
 \arguments{
@@ -33,6 +35,8 @@ gof(
 base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{rundir}{A directory in which to search.}
+
+\item{...}{Additional arguments, passed to \code{baseplot}.}
 
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 

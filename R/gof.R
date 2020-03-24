@@ -121,9 +121,64 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
   draw_key = draw_key_smooth
 )
 
+#' A coordinate system that is symmetric about $y=0$.
+#'
+#' This is a Cartesian coordinate system that is centered vertically at $y=0$.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
+coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
+  ggproto(NULL, CoordSymmY,
+    limits = list(x = xlim, y = ylim),
+    expand = expand,
+    clip = clip
+  )
+}
+
+#' @rdname coord_symm_y
+#' @format NULL
+#' @usage NULL
+#' @export
+CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
+  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
+    scale_y$range$range <- c(-1, 1)*max(abs(scale_y$range$range))
+    parent <- ggproto_parent(CoordCartesian, self)
+    parent$setup_panel_params(scale_x, scale_y, params)
+  }
+)
+
+#' A coordinate system that is symmetric about $y=x$.
+#'
+#' This is a Cartesian coordinate system that has the same limits in both $x$ and $y$.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
+coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
+  ggproto(NULL, CoordSymmXY,
+    limits = list(x = xlim, y = ylim),
+    expand = expand,
+    clip = clip
+  )
+}
+
+#' @rdname coord_symm_xy
+#' @format NULL
+#' @usage NULL
+#' @export
+CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
+  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
+    lim_xy <- c(
+      min(scale_x$range$range[1], scale_y$range$range[1]),
+      max(scale_x$range$range[2], scale_y$range$range[2]))
+    scale_x$range$range <- lim_xy
+    scale_y$range$range <- lim_xy
+    parent <- ggproto_parent(CoordCartesian, self)
+    parent$setup_panel_params(scale_x, scale_y, params)
+  }
+)
+
 #' Use log scales
 #'
 #' @param g A \code{ggplot2} object.
+#' @return g A \code{ggplot2} object with log scales in $x$, $y$ or both.
 #' @name logscales
 NULL
 
@@ -161,7 +216,7 @@ log_xy <- function(g) {
     breaks = scales::trans_breaks("log10", function(x) 10^x),
     labels = scales::trans_format("log10", scales::math_format(10^.x))
     ) +
-  annotation_logticks(sides="bl")
+  annotation_logticks(sides="bl", size=0.3)
 }
 
 #' Read gof data
@@ -220,14 +275,102 @@ gof_read_data <- function(rundir=getwd()) {
 #' parameter of the specific GOF function.
 #'
 #' @param data A \code{data.frame}.
+#' @param highlight (Optional) A 2-level \code{factor}, evaluated within
+#' \code{data}, indicating a subset of points that are to be highlighted on the
+#' plot.  Typically, these may be outliers, or a specific subset of interest.
+#' Those points belonging to the subset will be drawn with a different color
+#' and symbol, and a legend will appear as well.
+#' @param ... Additional arguments (ignored).
 #' @return  A \code{ggplot} object.
 #' @export
-gof_baseplot <- function(data) {
-  ggplot(data) +
+gof_baseplot <- function(data, highlight, ...) {
+  g <- ggplot(data) +
     geom_point_c() +
     geom_loess_c() +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
+
+  if (!missing(highlight)) {
+    gl <- guide_legend("Legend", title.position="top")
+    g <- g + aes(color={{ highlight }}, shape={{ highlight }}, size={{ highlight }}, alpha={{ highlight }}) +
+      guides(colour=gl, shape=gl, size=gl, alpha=gl) +
+      scale_colour_manual(values=c("#2b398b", "#ee3124")) +
+      scale_shape_manual(values=c(19, 13)) +
+      scale_size_manual(values=c(1.5, 3)) +
+      scale_alpha_manual(values=c(0.3, 1))
+  }
+  g
+}
+
+#' A generic function for residual plots
+#'
+#' @param data A \code{data.frame}.
+#' @param x,y Numeric vectors, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param baseplot A function that returns a \code{ggplot} object to use as the
+#' base.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @return  A \code{ggplot} object.
+#' @export
+gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
+  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+  g <- baseplot(data, ...) +
+    aes(x={{ x }}, y={{ y }}) +
+    labs(x=xlb, y=ylb) +
+    coord_symm_y() +
+    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
+    theme(panel.grid.major.y=element_line(colour="grey80", size=0.3))
+  if (isTRUE(log_x)) {
+    g <- log_x(g)
+  }
+  g
+}
+
+#' @rdname gof_residual
+#' @export
+gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
+  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+  g <- baseplot(data, ...) +
+    aes(x={{ x }}, y=abs({{ y }})) +
+    labs(x=xlb, y=sprintf("|%s|", ylb)) +
+    expand_limits(y=0) +
+    #geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
+    theme(panel.grid.major.y=element_line(colour="grey80", size=0.3))
+  if (isTRUE(log_x)) {
+    g <- log_x(g)
+  }
+  g
+}
+
+#' A generic function for identity plots
+#'
+#' Identity plots have symmetric x- and y-axes, a reference line at $y=x$, and
+#' a fixed aspect ration. Typical examples are DV vs. PRED and DV vs. IPRED.
+#'
+#' @param data A \code{data.frame}.
+#' @param x,y Numeric vectors, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param baseplot A function that returns a \code{ggplot} object to use as the
+#' base.
+#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y-axes.
+#' @return  A \code{ggplot} object.
+#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @export
+gof_identity <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
+  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
+  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+  g <- baseplot(data, ...) +
+    aes(x={{ x }}, y={{ y }}) +
+    labs(x=xlb, y=ylb) +
+    coord_symm_xy() +
+    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
+  if (isTRUE(log_xy)) {
+    g <- log_xy(g)
+  }
+  g
 }
 
 #' Basic gof plots
@@ -236,104 +379,67 @@ gof_baseplot <- function(data) {
 #' @param labels A named \code{list} of labels.
 #' @param baseplot A function that returns a \code{ggplot} object to use as the
 #' base for all scatterplots (histograms and QQ-plots are unaffected).
-#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y- axes.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @param log_xy If \code{TRUE} then log-scale will be used for both x- and y-axes.
+#' @return  A \code{ggplot} object.
+#' @param ... Additional arguments, passed to \code{baseplot}.
 #' @name gofplots
 NULL
 
 #' Plot CWRES vs. PRED
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$pred, y=.data$cwres) +
-    labs(x=labels$pred, y=labels$cwres) +
-    geom_blank(aes(x=.data$pred, y=-.data$cwres)) + # Trick to force symmetry
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_cwres_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$pred, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$time, y=.data$cwres) +
-    labs(x=labels$time, y=labels$cwres) +
-    geom_blank(aes(x=.data$time, y=-.data$cwres)) + # Trick to force symmetry
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_cwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$time, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$tad, y=.data$cwres) +
-    labs(x=labels$tad, y=labels$cwres) +
-    geom_blank(aes(x=.data$tad, y=-.data$cwres)) + # Trick to force symmetry
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_cwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$tad, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$ipred, y=abs(.data$iwres)) +
-    labs(x=labels$ipred, y=sprintf("|%s|", labels$iwres)) +
-    expand_limits(y=0) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_absiwres_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$ipred, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$time, y=abs(.data$iwres)) +
-    labs(x=labels$time, y=sprintf("|%s|", labels$iwres)) +
-    expand_limits(y=0) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_absiwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$time, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot) {
-  baseplot(data) +
-    aes(x=.data$tad, y=abs(.data$iwres)) +
-    labs(x=labels$tad, y=sprintf("|%s|", labels$iwres)) +
-    expand_limits(y=0) +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8)
+gof_absiwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$tad, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F) {
-  g <- baseplot(data) +
-    aes(x=.data$ipred, y=.data$dv) +
-    labs(x=labels$ipred, y=labels$dv) +
-    geom_blank(aes(x=.data$dv, y=.data$ipred)) + # Trick to force symmetry
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
-  if (isTRUE(log_xy)) {
-    g <- log_xy(g)
-  }
-  g
+gof_dv_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$ipred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F) {
-  g <- baseplot(data) +
-    aes(x=.data$pred, y=.data$dv) +
-    labs(x=labels$pred, y=labels$dv) +
-    geom_blank(aes(x=.data$dv, y=.data$pred)) + # Trick to force symmetry
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
-  if (isTRUE(log_xy)) {
-    g <- log_xy(g)
-  }
-  g
+gof_dv_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$pred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Histogram of CWRES
@@ -356,10 +462,9 @@ gof_cwres_histogram <- function(data, labels=default.labels) {
 #' @rdname gofplots
 #' @export
 gof_cwres_qqplot <- function(data, labels=default.labels) {
-  lim.qq <- with(stats::qqnorm(data$cwres, plot.it=FALSE), range(c(x, y)))
   ggplot(data, aes(sample=.data$cwres)) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
-    coord_fixed(ratio=1, xlim=lim.qq, ylim=lim.qq) +
+    coord_symm_xy() +
     stat_qq(color="#2b398b", alpha=0.3) +
     stat_qq_line(col="#ee3124", size=1) +
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
@@ -373,7 +478,8 @@ gof_cwres_qqplot <- function(data, labels=default.labels) {
 gof_list <- function(data=NULL,
                 labels=default.labels,
                 baseplot=gof_baseplot,
-                rundir=getwd())
+                rundir=getwd(),
+                ...)
 {
   if (is.null(data)) {
     data <- gof_read_data(rundir)
@@ -388,36 +494,42 @@ gof_list <- function(data=NULL,
   p[[2]] <- gof_cwres_qqplot(data, labels)
 
   # DV vs. IPRED linear scale
-  p[[3]] <- gof_dv_vs_ipred(data, labels)
+  p[[3]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
 
   # DV vs. PRED linear scale
-  p[[4]] <- gof_dv_vs_pred(data, labels)
+  p[[4]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
 
   # DV vs. IPRED log scale
-  p[[5]] <- gof_dv_vs_ipred(data, labels, log_xy=TRUE)
+  p[[5]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # DV vs. PRED log scale
-  p[[6]] <- gof_dv_vs_pred(data, labels, log_xy=TRUE)
+  p[[6]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # CWRES vs. PRED
-  p[[7]] <- gof_cwres_vs_pred(data, labels)
+  p[[7]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
 
   # CWRES vs. TIME
-  p[[8]] <- gof_cwres_vs_time(data, labels)
+  p[[8]] <- gof_cwres_vs_time(data, labels, baseplot, ...)
 
   # CWRES vs. TAD
-  p[[9]] <- gof_cwres_vs_tad(data, labels)
+  p[[9]] <- gof_cwres_vs_tad(data, labels, baseplot, ...)
 
   # |IWRES| vs. IPRED
-  p[[10]] <- gof_absiwres_vs_ipred(data, labels)
+  p[[10]] <- gof_absiwres_vs_ipred(data, labels, baseplot, ...)
 
   # |IWRES| vs. TIME
-  p[[11]] <- gof_absiwres_vs_time(data, labels)
+  p[[11]] <- gof_absiwres_vs_time(data, labels, baseplot, ...)
 
   # |IWRES| vs. TAD
-  p[[12]] <- gof_absiwres_vs_tad(data, labels)
+  p[[12]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
 
-  p
+  structure(p, class="gof_list")
+}
+
+#' @export
+print.gof_list <- function(x, ...) {
+  cat("<list of gof plots>\n")
+  invisible(x)
 }
 
 #' Layout gof plots
@@ -440,16 +552,18 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' @param p A \code{list} of `ggplot` objects to be laid out.
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
+#' @param ... Additional arguments, passed to \code{baseplot}.
 #' @export
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),
                 layout=c(ceiling(length(panels)/2), 2),
                 labels=default.labels,
                 baseplot=gof_baseplot,
-                rundir=getwd())
+                rundir=getwd(),
+                ...)
 {
 
-  p <- gof_list(data=data, labels=labels, rundir=rundir)
+  p <- gof_list(data=data, labels=labels, baseplot=baseplot, rundir=rundir, ...)
 
   if (length(panels) == 1) {
     p <- p[[panels]]

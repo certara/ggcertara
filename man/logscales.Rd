@@ -16,6 +16,9 @@ log_xy(g)
 \arguments{
 \item{g}{A \code{ggplot2} object.}
 }
+\value{
+g A \code{ggplot2} object with log scales in $x$, $y$ or both.
+}
 \description{
 Use log scales
 }
