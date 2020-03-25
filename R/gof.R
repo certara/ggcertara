@@ -121,9 +121,9 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
   draw_key = draw_key_smooth
 )
 
-#' A coordinate system that is symmetric about $y=0$.
+#' A coordinate system that is symmetric about \eqn{y=0}.
 #'
-#' This is a Cartesian coordinate system that is centered vertically at $y=0$.
+#' This is a Cartesian coordinate system that is centered vertically at \eqn{y=0}.
 #' @inheritParams ggplot2::coord_cartesian
 #' @export
 coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
@@ -146,9 +146,9 @@ CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
   }
 )
 
-#' A coordinate system that is symmetric about $y=x$.
+#' A coordinate system that is symmetric about \eqn{y=x}.
 #'
-#' This is a Cartesian coordinate system that has the same limits in both $x$ and $y$.
+#' This is a Cartesian coordinate system that has the same limits in both \eqn{x} and \eqn{y}.
 #' @inheritParams ggplot2::coord_cartesian
 #' @export
 coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
@@ -178,7 +178,7 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
 #' Use log scales
 #'
 #' @param g A \code{ggplot2} object.
-#' @return g A \code{ggplot2} object with log scales in $x$, $y$ or both.
+#' @return g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 #' @name logscales
 NULL
 
@@ -347,7 +347,7 @@ gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_base
 
 #' A generic function for identity plots
 #'
-#' Identity plots have symmetric x- and y-axes, a reference line at $y=x$, and
+#' Identity plots have symmetric x- and y-axes, a reference line at \eqn{y=x}, and
 #' a fixed aspect ration. Typical examples are DV vs. PRED and DV vs. IPRED.
 #'
 #' @param data A \code{data.frame}.
