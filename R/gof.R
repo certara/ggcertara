@@ -224,16 +224,7 @@ log_xy <- function(g) {
 #' @param rundir A directory in which to search.
 #' @return A \code{data.frame}.
 #' @export
-gof_read_data <- function(rundir=getwd()) {
-  if (rundir == getwd()) {
-    message("Searching for data in current working directory")
-  } else {
-    message(sprintf("Searching for data in %s", rundir))
-  }
-
-  # search in rundir for csv files that contain dv, pred, ipred, cwres, etc.
-  ll <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
-  ll <- c(ll, list.files(path=rundir, pattern="sdtab", full.names=TRUE))
+gof_read_data <- function(rundir=getwd(), file=NULL) {
 
   read.wrapper <- function(file, nrows) {
     if (file == "sdtab") {
@@ -244,17 +235,31 @@ gof_read_data <- function(rundir=getwd()) {
     stats::setNames(x, tolower(names(x)))
   }
 
-  data <- NULL
-  for (l in ll) {
-    data <- read.wrapper(l, nrows=1)  # Read just the first line to check the column names
-    if (all(c("dv", "pred", "ipred") %in% names(data))) {
-      message(sprintf("...Using %s", l))
-      data <- read.wrapper(l) # Read the whole file
-      break
+  if (is.null(file)) {
+    if (rundir == getwd()) {
+      message("Searching for data in current working directory")
+    } else {
+      message(sprintf("Searching for data in %s", rundir))
     }
-  }
-  if (is.null(data)) {
-    stop("No data found.")
+
+    # search in rundir for csv files that contain dv, pred, ipred, cwres, etc.
+    ll <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
+    ll <- c(ll, list.files(path=rundir, pattern="sdtab", full.names=TRUE))
+
+    data <- NULL
+    for (l in ll) {
+      data <- read.wrapper(l, nrows=1)  # Read just the first line to check the column names
+      if (all(c("dv", "pred", "ipred") %in% names(data))) {
+        message(sprintf("...Using %s", l))
+        data <- read.wrapper(l) # Read the whole file
+        break
+      }
+    }
+    if (is.null(data)) {
+      stop("No data found.")
+    }
+  } else {
+      data <- read.wrapper(file)
   }
 
   if (!is.null(data$mdv)) {
