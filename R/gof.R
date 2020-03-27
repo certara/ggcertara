@@ -168,6 +168,31 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
   draw_key = draw_key_smooth
 )
 
+#' A coordinate system that is symmetric about \eqn{x=0}.
+#'
+#' This is a Cartesian coordinate system that is centered vertically at \eqn{x=0}.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
+coord_symm_x <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
+  ggproto(NULL, CoordSymmX,
+    limits = list(x = xlim, y = ylim),
+    expand = expand,
+    clip = clip
+  )
+}
+
+#' @rdname coord_symm_x
+#' @format NULL
+#' @usage NULL
+#' @export
+CoordSymmX <- ggproto("CoordSymmX", CoordCartesian,
+  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
+    scale_x$range$range <- c(-1, 1)*max(abs(scale_x$range$range))
+    parent <- ggproto_parent(CoordCartesian, self)
+    parent$setup_panel_params(scale_x, scale_y, params)
+  }
+)
+
 #' A coordinate system that is symmetric about \eqn{y=0}.
 #'
 #' This is a Cartesian coordinate system that is centered vertically at \eqn{y=0}.
@@ -231,37 +256,41 @@ NULL
 
 #' @rdname logscales
 #' @export
-log_x <- function(g) {
+log_x <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_x_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
   ) +
   annotation_logticks(sides="b")
 }
 
 #' @rdname logscales
 #' @export
-log_y <- function(g) {
+log_y <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_y_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
   ) +
   annotation_logticks(sides="l")
 }
 
 #' @rdname logscales
 #' @export
-log_xy <- function(g) {
+log_xy <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_x_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
     ) +
   scale_y_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
     ) +
   annotation_logticks(sides="bl", size=0.3)
 }
@@ -494,27 +523,48 @@ gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_ba
   gof_identity(data, x=.data$pred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
+#' A generic function for histograms
+#' @export
+gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
+  xlb <- get_label({{ x }}, labels)
+  density <- NULL
+  g <- ggplot(data, aes(x={{ x }})) +
+    labs(x=xlb, y="Density") +
+    geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
+    stat_density(geom="line", col="#ee3124", size=1) +
+    theme_certara(base_size=11) +
+    theme(aspect.ratio=1)
+  if (isTRUE(log_x)) {
+    if (!is.null(symm_x))  {
+      g <- log_x(g, limits=function(x) symm_x*10^(c(-1, 1)*max(abs(log10(x/symm_x)), na.rm=T))) +
+        geom_vline(xintercept=symm_x, col="gray50")
+    } else {
+      g <- log_x(g)
+    }
+    g <- g + stat_function(fun=stats::dlnorm, color="black", linetype="dashed", size=0.8)
+  } else {
+    if (!is.null(symm_x))  {
+      g <- g +
+        scale_x_continuous(limits=function(x) symm_x + c(-1, 1)*max(abs(x - symm_x), na.rm=T)) +
+        geom_vline(xintercept=symm_x, col="gray50")
+    }
+    g <- g + stat_function(fun=stats::dnorm, color="black", linetype="dashed", size=0.8)
+  }
+  g
+}
+
 #' Histogram of CWRES
 #' @rdname gofplots
 #' @export
 gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
-  density <- NULL
-  ggplot(data, aes(x=.data$cwres)) +
-    labs(x=labels$cwres, y="Density") +
-    geom_blank(aes(x= -.data$cwres)) + # Trick to force symmetry
-    geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
-    geom_vline(xintercept=0, col="gray50") +
-    stat_density(geom="line", col="#ee3124", size=1) +
-    stat_function(fun=stats::dnorm, color="black", linetype="dashed", size=0.8) +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+  gof_histogram(data, x=.data$cwres, labels=labels, log_x=F)
 }
 
-#' QQ-plot of CWRES
-#' @rdname gofplots
+#' A generic function for QQ-plots
 #' @export
-gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
-  ggplot(data, aes(sample=.data$cwres)) +
+gof_qqplot <- function(data, x, labels=getOption("gof.labels")) {
+  xlb <- get_label({{ x }}, labels)
+  g <- ggplot(data, aes(sample={{ x }})) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
     stat_qq(color="#2b398b", alpha=0.3) +
@@ -522,6 +572,14 @@ gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
+  g
+}
+
+#' QQ-plot of CWRES
+#' @rdname gofplots
+#' @export
+gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
+  gof_qqplot(data, x=.data$cwres, labels=labels)
 }
 
 #' List of gof plots
