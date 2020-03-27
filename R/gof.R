@@ -598,47 +598,50 @@ gof_list <- function(data=NULL,
   p <- list()
 
   # Histogram of CWRES
-  p[[1]] <- gof_cwres_histogram(data, labels)
+  p[["cwres_histogram"]] <- gof_cwres_histogram(data, labels)
 
   # QQ-plot of CWRES
-  p[[2]] <- gof_cwres_qqplot(data, labels)
+  p[["cwres_qqplot"]] <- gof_cwres_qqplot(data, labels)
 
   # DV vs. IPRED linear scale
-  p[[3]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
+  p[["dv_vs_ipred"]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
 
   # DV vs. PRED linear scale
-  p[[4]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
+  p[["dv_vs_pred"]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
 
   # DV vs. IPRED log scale
-  p[[5]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
+  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # DV vs. PRED log scale
-  p[[6]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
+  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # CWRES vs. PRED
-  p[[7]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
+  p[["cwres_vs_pred"]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
 
   # CWRES vs. TIME
-  p[[8]] <- gof_cwres_vs_time(data, labels, baseplot, ...)
+  p[["cwres_vs_time"]] <- gof_cwres_vs_time(data, labels, baseplot, ...)
 
   # CWRES vs. TAD
-  p[[9]] <- gof_cwres_vs_tad(data, labels, baseplot, ...)
+  p[["cwres_vs_tad"]] <- gof_cwres_vs_tad(data, labels, baseplot, ...)
 
   # |IWRES| vs. IPRED
-  p[[10]] <- gof_absiwres_vs_ipred(data, labels, baseplot, ...)
+  p[["absiwres_vs_ipred"]] <- gof_absiwres_vs_ipred(data, labels, baseplot, ...)
 
   # |IWRES| vs. TIME
-  p[[11]] <- gof_absiwres_vs_time(data, labels, baseplot, ...)
+  p[["absiwres_vs_time"]] <- gof_absiwres_vs_time(data, labels, baseplot, ...)
 
   # |IWRES| vs. TAD
-  p[[12]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
+  p[["absiwres_vs_tad"]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
 
   structure(p, class="gof_list")
 }
 
 #' @export
 print.gof_list <- function(x, ...) {
-  cat("<list of gof plots>\n")
+  cat("List of gof plots:\n\n")
+  for (i in 1:length(x)) {
+    cat(sprintf("  %d. %s\n", i, names(x)[i]))
+  }
   invisible(x)
 }
 
