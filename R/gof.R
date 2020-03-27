@@ -6,14 +6,61 @@ NULL
 #' Default labels
 #' @export
 default.labels=list(
-  dv    = "Observed Concentration",
-  pred  = "Population Predicted Concentration",
-  ipred = "Individual Predicted Concentration",
-  cwres = "Conditional Weighted Residuals",
-  iwres = "Individual Weighted Residuals",
+  dv    = "Observed Value",
+  pred  = "Population Prediction",
+  ipred = "Individual Prediction",
+  cwres = "Conditional Weighted Residual",
+  iwres = "Individual Weighted Residual",
   time  = "Time",
   tad   = "Time After Dose"
 )
+
+.onLoad <- function(libname, pkgname) {
+  op <- list(
+    gof.labels = default.labels,
+    gof.units.dv = NA,
+    gof.units.time = NA,
+    gof.units.tad = NA
+  )
+  toset <- !(names(op) %in% names(options()))
+  if (any(toset)) options(op[toset])
+  invisible()
+}
+
+# This is an internal function that constructs labels for plots.  If it
+# recognizes certain variable names, it will add units from global options.
+get_label <- function(x, labels=getOption("gof.labels")) {
+  x <- rlang::enquo(x)
+  xlb <- tryCatch(rlang::eval_tidy(x, data=labels), error=function(e) NULL)
+  if (!is.null(xlb)) {
+    xnm <- tryCatch(rlang::as_label(x), error=function(e) NULL)
+    if (!is.null(xnm)) {
+      op <- switch(xnm,
+        dv    = "gof.units.dv",
+        pred  = "gof.units.dv",
+        ipred = "gof.units.dv",
+        time  = "gof.units.time",
+        tad   = "gof.units.tad",
+        NULL)
+      if (!is.null(op)) {
+        unit <- getOption(op)
+        if (!is.null(unit) && length(unit) > 0) {
+          if (length(unit) > 1) {
+            warning(sprintf("%s should be length 1, using first element", op))
+            unit <- unit[[1]]
+          }
+          if (!is.na(unit) && unit != "") {
+            xlb <- sprintf("%s (%s)", xlb, unit)
+          }
+        }
+      }
+    }
+  } else {
+    xlb <- tryCatch(rlang::as_label(x), error=function(e) NULL)
+  }
+  xlb
+}
+
 
 #' Customized geoms
 #' @inheritParams ggplot2::geom_point
@@ -318,9 +365,9 @@ gof_baseplot <- function(data, highlight, ...) {
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_residual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
@@ -335,9 +382,9 @@ gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplo
 
 #' @rdname gof_residual
 #' @export
-gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_absresidual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y=abs({{ y }})) +
     labs(x=xlb, y=sprintf("|%s|", ylb)) +
@@ -364,9 +411,9 @@ gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_base
 #' @return  A \code{ggplot} object.
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @export
-gof_identity <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_identity <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
@@ -394,63 +441,63 @@ NULL
 #' Plot CWRES vs. PRED
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$pred, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$pred, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$time, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$time, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$tad, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$tad, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$ipred, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$ipred, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$time, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$time, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$tad, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$tad, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  gof_identity(data, x=.data$ipred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
+gof_dv_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$ipred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  gof_identity(data, x=.data$pred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
+gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$pred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Histogram of CWRES
 #' @rdname gofplots
 #' @export
-gof_cwres_histogram <- function(data, labels=default.labels) {
+gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
   density <- NULL
   ggplot(data, aes(x=.data$cwres)) +
     labs(x=labels$cwres, y="Density") +
@@ -466,7 +513,7 @@ gof_cwres_histogram <- function(data, labels=default.labels) {
 #' QQ-plot of CWRES
 #' @rdname gofplots
 #' @export
-gof_cwres_qqplot <- function(data, labels=default.labels) {
+gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
   ggplot(data, aes(sample=.data$cwres)) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
@@ -481,7 +528,7 @@ gof_cwres_qqplot <- function(data, labels=default.labels) {
 #' @rdname gof
 #' @export
 gof_list <- function(data=NULL,
-                labels=default.labels,
+                labels=getOption("gof.labels"),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
@@ -562,7 +609,7 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),
                 layout=c(ceiling(length(panels)/2), 2),
-                labels=default.labels,
+                labels=getOption("gof.labels"),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
