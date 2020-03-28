@@ -8,7 +8,7 @@
 \usage{
 gof_list(
   data = NULL,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   rundir = getwd(),
   ...
@@ -20,7 +20,7 @@ gof(
   data = NULL,
   panels = c(3, 4, 7, 8, 9, 10),
   layout = c(ceiling(length(panels)/2), 2),
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   rundir = getwd(),
   ...

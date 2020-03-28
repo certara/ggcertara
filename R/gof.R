@@ -250,6 +250,7 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
 #' Use log scales
 #'
 #' @param g A \code{ggplot2} object.
+#' @param limits Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.
 #' @return g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 #' @name logscales
 NULL
@@ -298,6 +299,7 @@ log_xy <- function(g, limits=NULL) {
 #' Read gof data
 #'
 #' @param rundir A directory in which to search.
+#' @param file A filename to read the data from.
 #' @return A \code{data.frame}.
 #' @export
 gof_read_data <- function(rundir=getwd(), file=NULL) {
@@ -524,6 +526,12 @@ gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_ba
 }
 
 #' A generic function for histograms
+#' @param data A \code{data.frame}.
+#' @param x A numeric vector, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param symm_x A number of \code{NULL}. If a number, the x-axis will be symmetric, centered around this number.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @return  A \code{ggplot} object.
 #' @export
 gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
   xlb <- get_label({{ x }}, labels)
@@ -561,6 +569,10 @@ gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
 }
 
 #' A generic function for QQ-plots
+#' @param data A \code{data.frame}.
+#' @param x A numeric vector, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @return  A \code{ggplot} object.
 #' @export
 gof_qqplot <- function(data, x, labels=getOption("gof.labels")) {
   xlb <- get_label({{ x }}, labels)

@@ -16,7 +16,7 @@
 \usage{
 gof_cwres_vs_pred(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -24,7 +24,7 @@ gof_cwres_vs_pred(
 
 gof_cwres_vs_time(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -32,7 +32,7 @@ gof_cwres_vs_time(
 
 gof_cwres_vs_tad(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -40,7 +40,7 @@ gof_cwres_vs_tad(
 
 gof_absiwres_vs_ipred(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -48,7 +48,7 @@ gof_absiwres_vs_ipred(
 
 gof_absiwres_vs_time(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -56,7 +56,7 @@ gof_absiwres_vs_time(
 
 gof_absiwres_vs_tad(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -64,7 +64,7 @@ gof_absiwres_vs_tad(
 
 gof_dv_vs_ipred(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_xy = F,
   ...
@@ -72,15 +72,15 @@ gof_dv_vs_ipred(
 
 gof_dv_vs_pred(
   data,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_xy = F,
   ...
 )
 
-gof_cwres_histogram(data, labels = default.labels)
+gof_cwres_histogram(data, labels = getOption("gof.labels"))
 
-gof_cwres_qqplot(data, labels = default.labels)
+gof_cwres_qqplot(data, labels = getOption("gof.labels"))
 }
 \arguments{
 \item{data}{A \code{data.frame}.}
