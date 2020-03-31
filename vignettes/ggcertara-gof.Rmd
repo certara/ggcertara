@@ -172,7 +172,7 @@ also be further cutomized, see below).
 ## Labels
 
 ```{r}
-default.labels
+getOption("gof.labels")
 ```
 
 ## Outliers

@@ -4,7 +4,6 @@
 NULL
 
 #' Default labels
-#' @export
 default.labels=list(
   dv    = "Observed Value",
   pred  = "Population Prediction",
