@@ -137,13 +137,13 @@ Using the `panels` argument, single or multiple panels can be selected.  For
 example, to prduce both a histogram and QQ-plot of CWRES, select panels 1
 and 2:
 
-```{r fig.width=6, fig.height=3}
+```{r fig.width=6, fig.height=3, out.width="70%"}
 gof(dat, panels=1:2)
 ```
 
 To obtain just a plot of DV vs. IPRED on log-log scale, select panel 5:
 
-```{r fig.width=3, fig.height=3, out.width="50%"}
+```{r fig.width=3, fig.height=3, out.width="35%"}
 gof(dat, panels=5)
 ```
 
@@ -153,14 +153,14 @@ Individual panels can also be obtain in 2 other ways.
 The first is to select the desired panel from the list of panels returned by
 `gof_list()` (which returns a list of all standard panels):
 
-```{r fig.width=3, fig.height=3, out.width="50%"}
+```{r fig.width=3, fig.height=3, out.width="35%"}
 p <- gof_list(dat)
 p[[5]]
 ```
 
 The other way is to use a named function:
 
-```{r fig.width=3, fig.height=3, out.width="50%"}
+```{r fig.width=3, fig.height=3, out.width="35%"}
 gof_dv_vs_ipred(dat, log_xy=T)
 ```
 
@@ -171,8 +171,67 @@ also be further cutomized, see below).
 
 ## Labels
 
+There are several ways to customize the plot axis labels. When a recognized
+variable name is used in a plot (e.g. `ipred`, `cwres`, etc.), the functions
+will find a corresponding axis label in a list object which by default
+corresponds to a global option:
+
 ```{r}
 getOption("gof.labels")
+```
+
+Thus, to make a global change that will affect all plotting functions, one can modify this global option:
+
+```{r fig.width=6, fig.height=3, out.width="70%"}
+options(
+  gof.labels=list(
+    dv    = "Observed Concentration",
+    pred  = "Population Predicted Concentration",
+    ipred = "Individual Predicted Concentration",
+    cwres = "Conditional Weighted Residual",
+    iwres = "Individual Weighted Residual",
+    time  = "Time",
+    tad   = "Time After Dose")
+)
+gof(dat, c(6, 8))
+```
+
+Every function has a `labels` argument to override the default, should it be necessary.
+
+Some units (for dv, time and tad; pred and ipred use the same units as dv) can also be set using global options, and these will be appended to the label:
+
+```{r fig.width=7, fig.height=3.5, out.width="70%"}
+options(
+  gof.units.dv="ng/mL",
+  gof.units.time="h"
+)
+gof(dat, c(6, 8))
+```
+
+Finally, the usual `labs()` function can be used to set or modify the labels of any plot:
+
+```{r fig.width=3, fig.height=3, out.width="35%"}
+gof(dat, 6) + labs(x="Something silly", y="Why not?")
+```
+
+In this case, units do not get applied (they must be explicitly included in the
+labels).
+
+```{r echo=F}
+# Restore defaults
+options(
+  gof.labels=list(
+    dv    = "Observed Value",
+    pred  = "Population Prediction",
+    ipred = "Individual Prediction",
+    cwres = "Conditional Weighted Residual",
+    iwres = "Individual Weighted Residual",
+    time  = "Time",
+    tad   = "Time After Dose"),
+  gof.units.dv=NA,
+  gof.units.time=NA,
+  gof.units.tad=NA
+)
 ```
 
 ## Outliers
@@ -197,7 +256,7 @@ This feature should be used sparingly.
 
 For a single panel, you can just modify the `ggplot` object:
 
-```{r fig.width=4, fig.height=4, out.width="60%"}
+```{r fig.width=4, fig.height=4, out.width="40%"}
 gof(dat, panels=3, highlight=outlier) +
   scale_colour_manual(values=c("#7059A6", "#52ccbb")) +
   scale_shape_manual(values=c(19, 19)) +
@@ -208,7 +267,7 @@ For a `patchwork` object (multiple panels), you can do the same thing by
 replacing the `+` operator with a `%`:
 
 
-```{r fig.width=6, fig.height=4}
+```{r fig.width=6, fig.height=4, out.width="70%"}
 gof(dat, panels=3:4, highlight=outlier) &
   scale_colour_manual(values=c("#7059A6", "#52ccbb")) &
   scale_shape_manual(values=c(19, 19)) &
@@ -219,13 +278,13 @@ gof(dat, panels=3:4, highlight=outlier) &
 
 ## Adding geoms and annotations
 
-```{r fig.width=6, fig.height=3}
+```{r fig.width=6, fig.height=3, out.width="70%"}
 gof(dat, panels=10:11) &
   geom_smooth(method="lm", color="#52ccbb", se=F, size=1)
 ```
 
 
-```{r fig.width=6, fig.height=3}
+```{r fig.width=6, fig.height=3, out.width="70%"}
  gof(dat, panels=5:6) &
   geom_hline(yintercept=1.2, linetype="dashed") &
   geom_text(data=data.frame(x=Inf, y=1.2), aes(x=x, y=y),
