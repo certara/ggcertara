@@ -143,7 +143,7 @@ theme_certara <- function(base_size=11, base_family="",
         legend.background=element_rect(colour=NA), 
 
         legend.spacing=unit(2*half_line, "pt"),
-        legend.spacing.x=unit(1.2, "lines"), 
+        legend.spacing.x=unit(half_line, "pt"), 
         legend.spacing.y=NULL,
         
         legend.margin=margin(half_line, half_line, half_line, half_line),
@@ -155,7 +155,7 @@ theme_certara <- function(base_size=11, base_family="",
         legend.key.height=NULL,
         legend.key.width=NULL,
         
-        legend.text=element_text(size=rel(1.0)), 
+        legend.text=element_text(size=rel(1.0), margin=margin(r=2*half_line, unit="pt")),
         legend.text.align=NULL,
 
         legend.title=element_text(hjust=0), 
@@ -168,7 +168,7 @@ theme_certara <- function(base_size=11, base_family="",
         legend.box=NULL,
         legend.box.margin=margin(0, 0, 0, 0, "cm"),
         legend.box.background=element_blank(), 
-        legend.box.spacing=unit(2 * half_line, "pt"),
+        legend.box.spacing=unit(2*half_line, "pt"),
         
         panel.background=element_rect(
             fill="white", 

@@ -7,17 +7,19 @@
 \alias{log_xy}
 \title{Use log scales}
 \usage{
-log_x(g)
+log_x(g, limits = NULL)
 
-log_y(g)
+log_y(g, limits = NULL)
 
-log_xy(g)
+log_xy(g, limits = NULL)
 }
 \arguments{
 \item{g}{A \code{ggplot2} object.}
+
+\item{limits}{Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.}
 }
 \value{
-g A \code{ggplot2} object with log scales in $x$, $y$ or both.
+g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 }
 \description{
 Use log scales
