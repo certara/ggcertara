@@ -8,7 +8,7 @@ gof_identity(
   data,
   x,
   y,
-  labels = default.labels,
+  labels = getOption("gof.labels"),
   baseplot = gof_baseplot,
   log_xy = F,
   ...
@@ -32,6 +32,6 @@ base.}
 A \code{ggplot} object.
 }
 \description{
-Identity plots have symmetric x- and y-axes, a reference line at $y=x$, and
+Identity plots have symmetric x- and y-axes, a reference line at \eqn{y=x}, and
 a fixed aspect ration. Typical examples are DV vs. PRED and DV vs. IPRED.
 }

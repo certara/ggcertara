@@ -4,7 +4,7 @@
 \name{coord_symm_y}
 \alias{coord_symm_y}
 \alias{CoordSymmY}
-\title{A coordinate system that is symmetric about $y=0$.}
+\title{A coordinate system that is symmetric about \eqn{y=0}.}
 \usage{
 coord_symm_y(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on")
 }
@@ -27,6 +27,6 @@ limits, then those data points may show up in places such as the axes, the
 legend, the plot title, or the plot margins.}
 }
 \description{
-This is a Cartesian coordinate system that is centered vertically at $y=0$.
+This is a Cartesian coordinate system that is centered vertically at \eqn{y=0}.
 }
 \keyword{datasets}

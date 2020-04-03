@@ -4,16 +4,62 @@
 NULL
 
 #' Default labels
-#' @export
 default.labels=list(
-  dv    = "Observed Concentration",
-  pred  = "Population Predicted Concentration",
-  ipred = "Individual Predicted Concentration",
-  cwres = "Conditional Weighted Residuals",
-  iwres = "Individual Weighted Residuals",
+  dv    = "Observed Value",
+  pred  = "Population Prediction",
+  ipred = "Individual Prediction",
+  cwres = "Conditional Weighted Residual",
+  iwres = "Individual Weighted Residual",
   time  = "Time",
   tad   = "Time After Dose"
 )
+
+.onLoad <- function(libname, pkgname) {
+  op <- list(
+    gof.labels = default.labels,
+    gof.units.dv = NA,
+    gof.units.time = NA,
+    gof.units.tad = NA
+  )
+  toset <- !(names(op) %in% names(options()))
+  if (any(toset)) options(op[toset])
+  invisible()
+}
+
+# This is an internal function that constructs labels for plots.  If it
+# recognizes certain variable names, it will add units from global options.
+get_label <- function(x, labels=getOption("gof.labels")) {
+  x <- rlang::enquo(x)
+  xlb <- tryCatch(rlang::eval_tidy(x, data=labels), error=function(e) NULL)
+  if (!is.null(xlb)) {
+    xnm <- tryCatch(rlang::as_label(x), error=function(e) NULL)
+    if (!is.null(xnm)) {
+      op <- switch(xnm,
+        dv    = "gof.units.dv",
+        pred  = "gof.units.dv",
+        ipred = "gof.units.dv",
+        time  = "gof.units.time",
+        tad   = "gof.units.tad",
+        NULL)
+      if (!is.null(op)) {
+        unit <- getOption(op)
+        if (!is.null(unit) && length(unit) > 0) {
+          if (length(unit) > 1) {
+            warning(sprintf("%s should be length 1, using first element", op))
+            unit <- unit[[1]]
+          }
+          if (!is.na(unit) && unit != "") {
+            xlb <- sprintf("%s (%s)", xlb, unit)
+          }
+        }
+      }
+    }
+  } else {
+    xlb <- tryCatch(rlang::as_label(x), error=function(e) NULL)
+  }
+  xlb
+}
+
 
 #' Customized geoms
 #' @inheritParams ggplot2::geom_point
@@ -121,9 +167,34 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
   draw_key = draw_key_smooth
 )
 
-#' A coordinate system that is symmetric about $y=0$.
+#' A coordinate system that is symmetric about \eqn{x=0}.
 #'
-#' This is a Cartesian coordinate system that is centered vertically at $y=0$.
+#' This is a Cartesian coordinate system that is centered vertically at \eqn{x=0}.
+#' @inheritParams ggplot2::coord_cartesian
+#' @export
+coord_symm_x <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
+  ggproto(NULL, CoordSymmX,
+    limits = list(x = xlim, y = ylim),
+    expand = expand,
+    clip = clip
+  )
+}
+
+#' @rdname coord_symm_x
+#' @format NULL
+#' @usage NULL
+#' @export
+CoordSymmX <- ggproto("CoordSymmX", CoordCartesian,
+  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
+    scale_x$range$range <- c(-1, 1)*max(abs(scale_x$range$range))
+    parent <- ggproto_parent(CoordCartesian, self)
+    parent$setup_panel_params(scale_x, scale_y, params)
+  }
+)
+
+#' A coordinate system that is symmetric about \eqn{y=0}.
+#'
+#' This is a Cartesian coordinate system that is centered vertically at \eqn{y=0}.
 #' @inheritParams ggplot2::coord_cartesian
 #' @export
 coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
@@ -146,9 +217,9 @@ CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
   }
 )
 
-#' A coordinate system that is symmetric about $y=x$.
+#' A coordinate system that is symmetric about \eqn{y=x}.
 #'
-#' This is a Cartesian coordinate system that has the same limits in both $x$ and $y$.
+#' This is a Cartesian coordinate system that has the same limits in both \eqn{x} and \eqn{y}.
 #' @inheritParams ggplot2::coord_cartesian
 #' @export
 coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
@@ -178,86 +249,102 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
 #' Use log scales
 #'
 #' @param g A \code{ggplot2} object.
-#' @return g A \code{ggplot2} object with log scales in $x$, $y$ or both.
+#' @param limits Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.
+#' @return g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 #' @name logscales
 NULL
 
 #' @rdname logscales
 #' @export
-log_x <- function(g) {
+log_x <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_x_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
   ) +
   annotation_logticks(sides="b")
 }
 
 #' @rdname logscales
 #' @export
-log_y <- function(g) {
+log_y <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_y_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
   ) +
   annotation_logticks(sides="l")
 }
 
 #' @rdname logscales
 #' @export
-log_xy <- function(g) {
+log_xy <- function(g, limits=NULL) {
   .x <- NULL
   g + scale_x_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
     ) +
   scale_y_log10(
     breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    limits = limits
     ) +
   annotation_logticks(sides="bl", size=0.3)
 }
 
 #' Read gof data
 #'
+#' @param file A filename to read the data from. If not specified, a simple
+#'   heuristic search in \code{rundir} is performed.
 #' @param rundir A directory in which to search.
 #' @return A \code{data.frame}.
 #' @export
-gof_read_data <- function(rundir=getwd()) {
-  if (rundir == getwd()) {
-    message("Searching for data in current working directory")
-  } else {
-    message(sprintf("Searching for data in %s", rundir))
-  }
-
-  # search in rundir for csv files that contain dv, pred, ipred, cwres, etc.
-  ll <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
-  ll <- c(ll, list.files(path=rundir, pattern="sdtab", full.names=TRUE))
+gof_read_data <- function(file=NULL, rundir=getwd()) {
 
   read.wrapper <- function(file, nrows) {
-    if (file == "sdtab") {
-      x <- utils::read.table(file, header=TRUE, check.names=FALSE, skip=1, na.strings=c(".", ""))
+    tryCatch({
+      l1 <- readLines(file, n=1)
+      if (grepl("^TABLE NO\\.", l1)) {
+        x <- utils::read.table(file, header=TRUE, check.names=FALSE, skip=1, na.strings=c(".", ""))
+      } else {
+        x <- utils::read.csv(file, header=TRUE, check.names=FALSE, na.strings=c(".", ""))
+      }
+      stats::setNames(x, tolower(names(x)))
+    }, error=function(e) NULL)
+  }
+
+  if (is.null(file)) {
+    if (rundir == getwd()) {
+      message("Searching for data in current working directory")
     } else {
-      x <- utils::read.csv(file, header=TRUE, check.names=FALSE, na.strings=c(".", ""))
+      message(sprintf("Searching for data in %s", rundir))
     }
-    stats::setNames(x, tolower(names(x)))
+
+    # search in rundir for csv files that contain dv, pred, ipred, cwres, etc.
+    sdtabfiles <- list.files(path=rundir, pattern="sdtab*", full.names=TRUE)
+    csvfiles <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
+    ll <- c(sdtabfiles, csvfiles)
+
+    data <- NULL
+    for (l in ll) {
+      data <- read.wrapper(l, nrows=1)  # Read just the first line to check the column names
+      if (!is.null(data) & all(c("dv", "pred") %in% names(data))) {
+        message(sprintf("...Using %s", l))
+        data <- read.wrapper(l) # Read the whole file
+        break
+      }
+    }
+    if (is.null(data)) {
+      stop("No data found.")
+    }
+  } else {
+      data <- read.wrapper(file)
   }
 
-  data <- NULL
-  for (l in ll) {
-    data <- read.wrapper(l, nrows=1)  # Read just the first line to check the column names
-    if (all(c("dv", "pred", "ipred") %in% names(data))) {
-      message(sprintf("...Using %s", l))
-      data <- read.wrapper(l) # Read the whole file
-      break
-    }
-  }
-  if (is.null(data)) {
-    stop("No data found.")
-  }
-
-  if (!is.null(data$mdv)) {
+  if (!is.null(data) & !is.null(data$mdv)) {
     data <- data[data$mdv==0,]
   }
 
@@ -313,9 +400,9 @@ gof_baseplot <- function(data, highlight, ...) {
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_residual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
@@ -330,9 +417,9 @@ gof_residual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplo
 
 #' @rdname gof_residual
 #' @export
-gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_absresidual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y=abs({{ y }})) +
     labs(x=xlb, y=sprintf("|%s|", ylb)) +
@@ -347,7 +434,7 @@ gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_base
 
 #' A generic function for identity plots
 #'
-#' Identity plots have symmetric x- and y-axes, a reference line at $y=x$, and
+#' Identity plots have symmetric x- and y-axes, a reference line at \eqn{y=x}, and
 #' a fixed aspect ration. Typical examples are DV vs. PRED and DV vs. IPRED.
 #'
 #' @param data A \code{data.frame}.
@@ -359,9 +446,9 @@ gof_absresidual <- function(data, x, y, labels=default.labels, baseplot=gof_base
 #' @return  A \code{ggplot} object.
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @export
-gof_identity <- function(data, x, y, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  xlb <- rlang::eval_tidy(rlang::enquo(x), data=labels)
-  ylb <- rlang::eval_tidy(rlang::enquo(y), data=labels)
+gof_identity <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  xlb <- get_label({{ x }}, labels)
+  ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
@@ -389,80 +476,111 @@ NULL
 #' Plot CWRES vs. PRED
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$pred, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$pred, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$time, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$time, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_residual(data, x=.data$tad, y=.data$cwres, baseplot=baseplot, log_x=log_x, ...)
+gof_cwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_residual(data, x=.data$tad, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$ipred, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$ipred, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_time <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$time, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$time, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_tad <- function(data, labels=default.labels, baseplot=gof_baseplot, log_x=F, ...) {
-  gof_absresidual(data, x=.data$tad, y=.data$iwres, baseplot=baseplot, log_x=log_x, ...)
+gof_absiwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+  gof_absresidual(data, x=.data$tad, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_ipred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  gof_identity(data, x=.data$ipred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
+gof_dv_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$ipred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_pred <- function(data, labels=default.labels, baseplot=gof_baseplot, log_xy=F, ...) {
-  gof_identity(data, x=.data$pred, y=.data$dv, baseplot=baseplot, log_xy=log_xy, ...)
+gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+  gof_identity(data, x=.data$pred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
+}
+
+#' A generic function for histograms
+#' @param data A \code{data.frame}.
+#' @param x A numeric vector, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @param symm_x A number of \code{NULL}. If a number, the x-axis will be symmetric, centered around this number.
+#' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
+#' @return  A \code{ggplot} object.
+#' @export
+gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
+  xlb <- get_label({{ x }}, labels)
+  density <- NULL
+  g <- ggplot(data, aes(x={{ x }})) +
+    labs(x=xlb, y="Density") +
+    geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
+    stat_density(geom="line", col="#ee3124", size=1) +
+    theme_certara(base_size=11) +
+    theme(aspect.ratio=1)
+  if (isTRUE(log_x)) {
+    if (!is.null(symm_x))  {
+      g <- log_x(g, limits=function(x) symm_x*10^(c(-1, 1)*max(abs(log10(x/symm_x)), na.rm=T))) +
+        geom_vline(xintercept=symm_x, col="gray50")
+    } else {
+      g <- log_x(g)
+    }
+    g <- g + stat_function(fun=stats::dlnorm, color="black", linetype="dashed", size=0.8)
+  } else {
+    if (!is.null(symm_x))  {
+      g <- g +
+        scale_x_continuous(limits=function(x) symm_x + c(-1, 1)*max(abs(x - symm_x), na.rm=T)) +
+        geom_vline(xintercept=symm_x, col="gray50")
+    }
+    g <- g + stat_function(fun=stats::dnorm, color="black", linetype="dashed", size=0.8)
+  }
+  g
 }
 
 #' Histogram of CWRES
 #' @rdname gofplots
 #' @export
-gof_cwres_histogram <- function(data, labels=default.labels) {
-  density <- NULL
-  ggplot(data, aes(x=.data$cwres)) +
-    labs(x=labels$cwres, y="Density") +
-    geom_blank(aes(x= -.data$cwres)) + # Trick to force symmetry
-    geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
-    geom_vline(xintercept=0, col="gray50") +
-    stat_density(geom="line", col="#ee3124", size=1) +
-    stat_function(fun=stats::dnorm, color="black", linetype="dashed", size=0.8) +
-    theme_certara(base_size=11) +
-    theme(aspect.ratio=1)
+gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
+  gof_histogram(data, x=.data$cwres, labels=labels, log_x=F)
 }
 
-#' QQ-plot of CWRES
-#' @rdname gofplots
+#' A generic function for QQ-plots
+#' @param data A \code{data.frame}.
+#' @param x A numeric vector, evaulated within \code{data}.
+#' @param labels A named \code{list} of labels.
+#' @return  A \code{ggplot} object.
 #' @export
-gof_cwres_qqplot <- function(data, labels=default.labels) {
-  ggplot(data, aes(sample=.data$cwres)) +
+gof_qqplot <- function(data, x, labels=getOption("gof.labels")) {
+  xlb <- get_label({{ x }}, labels)
+  g <- ggplot(data, aes(sample={{ x }})) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
     stat_qq(color="#2b398b", alpha=0.3) +
@@ -470,13 +588,21 @@ gof_cwres_qqplot <- function(data, labels=default.labels) {
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
+  g
+}
+
+#' QQ-plot of CWRES
+#' @rdname gofplots
+#' @export
+gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
+  gof_qqplot(data, x=.data$cwres, labels=labels)
 }
 
 #' List of gof plots
 #' @rdname gof
 #' @export
 gof_list <- function(data=NULL,
-                labels=default.labels,
+                labels=getOption("gof.labels"),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
@@ -488,47 +614,50 @@ gof_list <- function(data=NULL,
   p <- list()
 
   # Histogram of CWRES
-  p[[1]] <- gof_cwres_histogram(data, labels)
+  p[["cwres_histogram"]] <- gof_cwres_histogram(data, labels)
 
   # QQ-plot of CWRES
-  p[[2]] <- gof_cwres_qqplot(data, labels)
+  p[["cwres_qqplot"]] <- gof_cwres_qqplot(data, labels)
 
   # DV vs. IPRED linear scale
-  p[[3]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
+  p[["dv_vs_ipred"]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
 
   # DV vs. PRED linear scale
-  p[[4]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
+  p[["dv_vs_pred"]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
 
   # DV vs. IPRED log scale
-  p[[5]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
+  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # DV vs. PRED log scale
-  p[[6]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
+  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # CWRES vs. PRED
-  p[[7]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
+  p[["cwres_vs_pred"]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
 
   # CWRES vs. TIME
-  p[[8]] <- gof_cwres_vs_time(data, labels, baseplot, ...)
+  p[["cwres_vs_time"]] <- gof_cwres_vs_time(data, labels, baseplot, ...)
 
   # CWRES vs. TAD
-  p[[9]] <- gof_cwres_vs_tad(data, labels, baseplot, ...)
+  p[["cwres_vs_tad"]] <- gof_cwres_vs_tad(data, labels, baseplot, ...)
 
   # |IWRES| vs. IPRED
-  p[[10]] <- gof_absiwres_vs_ipred(data, labels, baseplot, ...)
+  p[["absiwres_vs_ipred"]] <- gof_absiwres_vs_ipred(data, labels, baseplot, ...)
 
   # |IWRES| vs. TIME
-  p[[11]] <- gof_absiwres_vs_time(data, labels, baseplot, ...)
+  p[["absiwres_vs_time"]] <- gof_absiwres_vs_time(data, labels, baseplot, ...)
 
   # |IWRES| vs. TAD
-  p[[12]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
+  p[["absiwres_vs_tad"]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
 
   structure(p, class="gof_list")
 }
 
 #' @export
 print.gof_list <- function(x, ...) {
-  cat("<list of gof plots>\n")
+  cat("List of gof plots:\n\n")
+  for (i in 1:length(x)) {
+    cat(sprintf("  %d. %s\n", i, names(x)[i]))
+  }
   invisible(x)
 }
 
@@ -557,7 +686,7 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),
                 layout=c(ceiling(length(panels)/2), 2),
-                labels=default.labels,
+                labels=getOption("gof.labels"),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
