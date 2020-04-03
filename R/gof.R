@@ -297,19 +297,23 @@ log_xy <- function(g, limits=NULL) {
 
 #' Read gof data
 #'
+#' @param file A filename to read the data from. If not specified, a simple
+#'   heuristic search in \code{rundir} is performed.
 #' @param rundir A directory in which to search.
-#' @param file A filename to read the data from.
 #' @return A \code{data.frame}.
 #' @export
-gof_read_data <- function(rundir=getwd(), file=NULL) {
+gof_read_data <- function(file=NULL, rundir=getwd()) {
 
   read.wrapper <- function(file, nrows) {
-    if (file == "sdtab") {
-      x <- utils::read.table(file, header=TRUE, check.names=FALSE, skip=1, na.strings=c(".", ""))
-    } else {
-      x <- utils::read.csv(file, header=TRUE, check.names=FALSE, na.strings=c(".", ""))
-    }
-    stats::setNames(x, tolower(names(x)))
+    tryCatch({
+      l1 <- readLines(file, n=1)
+      if (grepl("^TABLE NO\\.", l1)) {
+        x <- utils::read.table(file, header=TRUE, check.names=FALSE, skip=1, na.strings=c(".", ""))
+      } else {
+        x <- utils::read.csv(file, header=TRUE, check.names=FALSE, na.strings=c(".", ""))
+      }
+      stats::setNames(x, tolower(names(x)))
+    }, error=function(e) NULL)
   }
 
   if (is.null(file)) {
@@ -320,13 +324,14 @@ gof_read_data <- function(rundir=getwd(), file=NULL) {
     }
 
     # search in rundir for csv files that contain dv, pred, ipred, cwres, etc.
-    ll <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
-    ll <- c(ll, list.files(path=rundir, pattern="sdtab", full.names=TRUE))
+    sdtabfiles <- list.files(path=rundir, pattern="sdtab*", full.names=TRUE)
+    csvfiles <- list.files(path=rundir, pattern="*.csv", full.names=TRUE)
+    ll <- c(sdtabfiles, csvfiles)
 
     data <- NULL
     for (l in ll) {
       data <- read.wrapper(l, nrows=1)  # Read just the first line to check the column names
-      if (all(c("dv", "pred", "ipred") %in% names(data))) {
+      if (!is.null(data) & all(c("dv", "pred") %in% names(data))) {
         message(sprintf("...Using %s", l))
         data <- read.wrapper(l) # Read the whole file
         break
@@ -339,7 +344,7 @@ gof_read_data <- function(rundir=getwd(), file=NULL) {
       data <- read.wrapper(file)
   }
 
-  if (!is.null(data$mdv)) {
+  if (!is.null(data) & !is.null(data$mdv)) {
     data <- data[data$mdv==0,]
   }
 
