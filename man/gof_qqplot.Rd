@@ -4,7 +4,7 @@
 \alias{gof_qqplot}
 \title{A generic function for QQ-plots}
 \usage{
-gof_qqplot(data, x, labels = getOption("gof.labels"))
+gof_qqplot(data, x, labels = gof_labels())
 }
 \arguments{
 \item{data}{A \code{data.frame}.}
