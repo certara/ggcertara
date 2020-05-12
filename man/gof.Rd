@@ -46,9 +46,16 @@ and column in which the panels are to be layed out (for multiple panels).}
 \item{panels}{A \code{numeric} vector specifying the panels desired.}
 }
 \description{
-List of gof plots
-
-Layout gof plots
-
-Goodness-of-fit diagnostic plots
+\code{gof} generats a set of panels of goodness-of-fit diagnostic plots.
+}
+\details{
+The default plot contains the following 6 panels in a 3x2 matrix:
+\itemize{
+  \item \code{\link{gof_dv_vs_ipred}}
+  \item \code{\link{gof_dv_vs_pred}}
+  \item \code{\link{gof_cwres_vs_pred}}
+  \item \code{\link{gof_cwres_vs_time}}
+  \item \code{\link{gof_cwres_vs_tad}}
+  \item \code{\link{gof_absiwres_vs_ipred}}
+}
 }

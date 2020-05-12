@@ -22,5 +22,5 @@ log_xy(g, limits = NULL)
 g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 }
 \description{
-Use log scales
+This function puts the respective axes in log scale.
 }

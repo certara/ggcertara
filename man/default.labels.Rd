@@ -3,12 +3,28 @@
 \docType{data}
 \name{default.labels}
 \alias{default.labels}
-\title{Default labels}
+\title{List of default plot labels.}
 \format{An object of class \code{list} of length 7.}
 \usage{
 default.labels
 }
+\arguments{
+\item{dv}{The label for dependent variable.}
+
+\item{pred}{The label for population predictions.}
+
+\item{ipred}{The label for individual predictions.}
+
+\item{cwres}{The label for conditional weighted residuals.}
+
+\item{iwres}{The label for individual weighted residuals.}
+
+\item{time}{The label for time.}
+
+\item{tad}{The label for time after dose.}
+}
 \description{
-Default labels
+This function specifies the default plot labels. The labels can be overridden
+using the \code{baseplot} parameter of the specific DGOF function.
 }
 \keyword{datasets}

@@ -3,7 +3,19 @@
 #' @importFrom rlang .data
 NULL
 
-#' Default labels
+#####################################################
+#' List of default plot labels.
+#'
+#' This function specifies the default plot labels. The labels can be overridden
+#' using the \code{baseplot} parameter of the specific DGOF function.
+#' @param dv The label for dependent variable.
+#' @param pred The label for population predictions.
+#' @param ipred The label for individual predictions.
+#' @param cwres The label for conditional weighted residuals.
+#' @param iwres The label for individual weighted residuals.
+#' @param time The label for time.
+#' @param tad The label for time after dose.
+#' @export
 default.labels=list(
   dv    = "Observed Value",
   pred  = "Population Prediction",
@@ -61,6 +73,7 @@ get_label <- function(x, labels=getOption("gof.labels")) {
 }
 
 
+#####################################################
 #' Customized geoms
 #' @inheritParams ggplot2::geom_point
 #' @name certara_geom
@@ -121,7 +134,7 @@ geom_loess_c <- function(mapping = NULL, data = NULL,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
     params = list(
-      span = span, 
+      span = span,
       degree = degree,
       family = family,
       na.rm = na.rm,
@@ -246,8 +259,10 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
   }
 )
 
+#####################################################
 #' Use log scales
 #'
+#' This function puts the respective axes in log scale.
 #' @param g A \code{ggplot2} object.
 #' @param limits Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.
 #' @return g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
@@ -295,7 +310,12 @@ log_xy <- function(g, limits=NULL) {
   annotation_logticks(sides="bl", size=0.3)
 }
 
+#####################################################
 #' Read gof data
+#'
+#' This function reads in data files with the .csv file extension and files containing
+#' the string "sdtab" from the current working directory. Names are set to lower case
+#' and data items are checked to verify that "dv", "pred", and "ipred" are present.
 #'
 #' @param file A filename to read the data from. If not specified, a simple
 #'   heuristic search in \code{rundir} is performed.
@@ -351,6 +371,7 @@ gof_read_data <- function(file=NULL, rundir=getwd()) {
   return(data)
 }
 
+#####################################################
 #' Base plot for gof plots
 #'
 #' This is the default base plot for goodness-of-fit diagnostic plots. It
@@ -460,6 +481,7 @@ gof_identity <- function(data, x, y, labels=getOption("gof.labels"), baseplot=go
   g
 }
 
+#####################################################
 #' Basic gof plots
 #'
 #' @param data A \code{data.frame}.
@@ -480,6 +502,7 @@ gof_cwres_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof
   gof_residual(data, x=.data$pred, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
@@ -487,6 +510,7 @@ gof_cwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof
   gof_residual(data, x=.data$time, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
@@ -494,6 +518,7 @@ gof_cwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_
   gof_residual(data, x=.data$tad, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
@@ -501,6 +526,7 @@ gof_absiwres_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot
   gof_absresidual(data, x=.data$ipred, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
@@ -508,6 +534,7 @@ gof_absiwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=
   gof_absresidual(data, x=.data$time, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
@@ -515,6 +542,7 @@ gof_absiwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=g
   gof_absresidual(data, x=.data$tad, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
+#####################################################
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
@@ -522,6 +550,7 @@ gof_dv_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_b
   gof_identity(data, x=.data$ipred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
+#####################################################
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
@@ -529,6 +558,7 @@ gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_ba
   gof_identity(data, x=.data$pred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
+#####################################################
 #' A generic function for histograms
 #' @param data A \code{data.frame}.
 #' @param x A numeric vector, evaulated within \code{data}.
@@ -565,6 +595,7 @@ gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (is
   g
 }
 
+#####################################################
 #' Histogram of CWRES
 #' @rdname gofplots
 #' @export
@@ -598,6 +629,7 @@ gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
   gof_qqplot(data, x=.data$cwres, labels=labels)
 }
 
+#####################################################
 #' List of gof plots
 #' @rdname gof
 #' @export
@@ -661,6 +693,7 @@ print.gof_list <- function(x, ...) {
   invisible(x)
 }
 
+#####################################################
 #' Layout gof plots
 #' @rdname gof
 #' @export
@@ -673,7 +706,20 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
   p
 }
 
+#####################################################
 #' Goodness-of-fit diagnostic plots
+#'
+#' \code{gof} generats a set of panels of goodness-of-fit diagnostic plots.
+#'
+#' The default plot contains the following 6 panels in a 3x2 matrix:
+#' \itemize{
+#'   \item \code{\link{gof_dv_vs_ipred}}
+#'   \item \code{\link{gof_dv_vs_pred}}
+#'   \item \code{\link{gof_cwres_vs_pred}}
+#'   \item \code{\link{gof_cwres_vs_time}}
+#'   \item \code{\link{gof_cwres_vs_tad}}
+#'   \item \code{\link{gof_absiwres_vs_ipred}}
+#' }
 #'
 #' @inheritParams gofplots
 #' @inheritParams gof_read_data
@@ -682,6 +728,7 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
 #' @param ... Additional arguments, passed to \code{baseplot}.
+#'
 #' @export
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),
