@@ -418,10 +418,10 @@ gof_read_data <- function(file=NULL, rundir=getwd()) {
 #' @param ... Additional arguments (ignored).
 #' @return  A \code{ggplot} object.
 #' @export
-gof_baseplot <- function(data, highlight, ...) {
+gof_baseplot <- function(data, highlight, ..., loess.args=list()) {
   g <- ggplot(data) +
     geom_point_c() +
-    geom_loess_c() +
+    do.call(geom_loess_c, as.list(loess.args)) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
 
