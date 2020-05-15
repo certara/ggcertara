@@ -8,18 +8,22 @@
 \usage{
 gof_list(
   data = NULL,
+  panels = gof_default_panels(),
+  empty = FALSE,
+  all = FALSE,
   labels = gof_labels(),
   baseplot = gof_baseplot,
   rundir = getwd(),
   ...
 )
 
-gof_layout(p, layout = c(ceiling(length(p)/2), 2))
+gof_layout(p, layout = NULL, transpose = FALSE, ...)
 
 gof(
   data = NULL,
-  panels = c(3, 4, 7, 8, 9, 10),
+  panels = gof_default_panels(),
   layout = c(ceiling(length(panels)/2), 2),
+  transpose = FALSE,
   labels = gof_labels(),
   baseplot = gof_baseplot,
   rundir = getwd(),
@@ -29,6 +33,8 @@ gof(
 \arguments{
 \item{data}{A \code{data.frame}.}
 
+\item{panels}{A \code{numeric} vector specifying the panels desired.}
+
 \item{labels}{A named \code{list} of labels.}
 
 \item{baseplot}{A function that returns a \code{ggplot} object to use as the
@@ -36,14 +42,14 @@ base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{rundir}{A directory in which to search.}
 
-\item{...}{Additional arguments, passed to \code{baseplot}.}
+\item{...}{Additional arguments passed to other methods (e.g. \code{\link{baseplot}}).}
 
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 
 \item{layout}{A \code{numeric} vector of length 2 giving the number of rows
 and column in which the panels are to be layed out (for multiple panels).}
 
-\item{panels}{A \code{numeric} vector specifying the panels desired.}
+\item{transpose}{Should the layout be transposed (rows become columns)?}
 }
 \description{
 List of gof plots
