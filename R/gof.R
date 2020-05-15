@@ -25,7 +25,10 @@ default.labels <- list(
     gof.label.tad   = default.labels$tad,
     gof.units.dv    = NA,
     gof.units.time  = NA,
-    gof.units.tad   = NA
+    gof.units.tad   = NA,
+    gof.scale.dv    = "linear",
+    gof.scale.time  = "linear",
+    gof.scale.tad   = "linear"
   )
   toset <- !(names(op) %in% names(options()))
   if (any(toset)) options(op[toset])
@@ -632,7 +635,7 @@ gof_qqplot <- function(data, x, labels=gof_labels()) {
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
     stat_qq(color="#2b398b", alpha=0.3) +
-    stat_qq_line(col="#ee3124", size=1) +
+    stat_qq_line(color="#ee3124", size=1) +
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
@@ -646,20 +649,79 @@ gof_cwres_qqplot <- function(data, labels=gof_labels()) {
   gof_qqplot(data, x=.data$cwres, labels=labels)
 }
 
+#' The default GOF panels
+#'
+#' @param ... Ignored.
+#'
+#' @details 
+#' The default output of \code{\link{gof}} is consists of 6 panels arranged in
+#' a 3-by-2 grid. These are:
+#'
+#' \enumerate{
+#'   \item dv_vs_ipred
+#'   \item dv_vs_pred
+#'   \item cwres_vs_pred
+#'   \item cwres_vs_time
+#'   \item cwres_vs_tad
+#'   \item absiwres_vs_ipred
+#' }
+#'
+#' Most panels come a both a linear and log variant. Normally, the linear
+#' variant will be chosen, but in some cases it may make more sense for the log
+#' variants to be the default for certain panels. This can be achieved using
+#' \code{\link{options}} \code{gof.scale.*} (see Examples).
+#'
+#' @return A vector of panel numbers. 
+#'
+#' @examples
+#' gof_default_panels()
+#'
+#' \dontrun{
+#' # Change the default scale to log for dv/pred/ipred
+#' options(gof.scale.dv="log")
+#' gof_default_panels()
+#'
+#' # Change the default scale to log for time and tad
+#' options(gof.scale.time="log", gof.scale.tad="log")
+#' gof_default_panels()
+#' }
+#' @export
+gof_default_panels <- function(...) {
+  m1 <- (-1)^(getOption("gof.scale.dv")=="log")
+  m2 <- (-1)^(getOption("gof.scale.time")=="log")
+  m3 <- (-1)^(getOption("gof.scale.tad")=="log")
+  c(
+    3*m1, # dv_vs_ipred"
+    4*m1, # dv_vs_pred"
+    5*m1, # cwres_vs_pred"
+    6*m2, # cwres_vs_time"
+    7*m3, # cwres_vs_tad"
+    8*m1  # absiwres_vs_ipred"
+  )
+}
+
 #' List of gof plots
 #' @rdname gof
 #' @export
 gof_list <- function(data=NULL,
+                panels=gof_default_panels(),
+                empty=FALSE,
+                all=FALSE,
                 labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
 {
-  if (is.null(data)) {
-    data <- gof_read_data(rundir)
+
+  if (isTRUE(empty)) {
+    return(structure(list(), class="gof_list"))
   }
 
   p <- list()
+
+  if (is.null(data)) {
+    data <- gof_read_data(rundir)
+  }
 
   # Histogram of CWRES
   p[["cwres_histogram"]] <- gof_cwres_histogram(data, labels)
@@ -667,17 +729,11 @@ gof_list <- function(data=NULL,
   # QQ-plot of CWRES
   p[["cwres_qqplot"]] <- gof_cwres_qqplot(data, labels)
 
-  # DV vs. IPRED linear scale
+  # DV vs. IPRED
   p[["dv_vs_ipred"]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
 
-  # DV vs. PRED linear scale
+  # DV vs. PRED
   p[["dv_vs_pred"]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
-
-  # DV vs. IPRED log scale
-  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
-
-  # DV vs. PRED log scale
-  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # CWRES vs. PRED
   p[["cwres_vs_pred"]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
@@ -696,6 +752,37 @@ gof_list <- function(data=NULL,
 
   # |IWRES| vs. TAD
   p[["absiwres_vs_tad"]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
+
+  # DV vs. IPRED log scale
+  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
+
+  # DV vs. PRED log scale
+  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
+
+  # CWRES vs. PRED log scale
+  p[["cwres_vs_pred_log"]] <- gof_cwres_vs_pred(data, labels, baseplot, log_x=TRUE, ...)
+
+  # CWRES vs. TIME log scale
+  p[["cwres_vs_time_log"]] <- gof_cwres_vs_time(data, labels, baseplot, log_x=TRUE, ...)
+
+  # CWRES vs. TAD log scale
+  p[["cwres_vs_tad_log"]] <- gof_cwres_vs_tad(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. IPRED log scale
+  p[["absiwres_vs_ipred_log"]] <- gof_absiwres_vs_ipred(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. TIME log scale
+  p[["absiwres_vs_time_log"]] <- gof_absiwres_vs_time(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. TAD log scale
+  p[["absiwres_vs_tad_log"]] <- gof_absiwres_vs_tad(data, labels, baseplot, log_x=TRUE, ...)
+
+  if (!isTRUE(all)) {
+    if (is.numeric(panels)) {
+      panels <- paste0(names(p)[abs(panels)], ifelse(panels <= -3, "_log", ""))
+    }
+    p <- p[panels]
+  }
 
   structure(p, class="gof_list")
 }
@@ -741,7 +828,7 @@ gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
 #' @param ... Additional arguments passed to other methods (e.g. \code{\link{baseplot}}).
 #' @export
 gof <- function(data=NULL,
-                panels=c(3, 4, 7, 8, 9, 10),
+                panels=gof_default_panels(),
                 layout=c(ceiling(length(panels)/2), 2),
                 transpose=FALSE,
                 labels=gof_labels(),
@@ -750,15 +837,13 @@ gof <- function(data=NULL,
                 ...)
 {
 
-  p <- gof_list(data=data, labels=labels, baseplot=baseplot, rundir=rundir, ...)
+  p <- gof_list(data=data, panels=panels, labels=labels, baseplot=baseplot, rundir=rundir, ...)
 
-  if (length(panels) == 1) {
-    p <- p[[panels]]
+  if (length(p) == 1) {
+    p[[1]]
   } else {
-    p <- p[panels]
-    p <- gof_layout(p, layout=layout, transpose=transpose, ...)
+    gof_layout(p, layout=layout, transpose=transpose, ...)
   }
-  p
 }
 
 # vim: ts=2 sw=2 et
