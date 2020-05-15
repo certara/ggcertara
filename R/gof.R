@@ -34,7 +34,7 @@ default.labels <- list(
 
 #' Labels for GOF plots
 #'
-#' @args ... Named character arguments will override the defaults.
+#' @param ... Named character arguments will override the defaults.
 #'
 #' @details This function can be used to get and set the axis labels for GOF
 #' plots.  The default labels are taken from \code{\link{options}} that start
@@ -184,23 +184,32 @@ GeomLoessC <- ggproto("GeomLoessC", Geom,
 
     coords <- coord$transform(data, panel_params)
 
-    fit <- loess.smooth(coords$x, coords$y, span=span, degree=degree, family=family)
-    col <- alpha(coords$fitcolour, coords$fitalpha)
-    if (length(unique(col)) == 1) {
-      col <- col[1]
-    } else {
-      col <- "black"
-    }
+    tryCatch({
+      fit <- loess.smooth(coords$x, coords$y, span=span, degree=degree, family=family)
 
-    grid::linesGrob(
-      fit$x, fit$y,
-      default.units = "native",
-      gp = grid::gpar(
-        col = col,
-        lwd = coords$fitsize[1] * .pt,
-        lty = coords$fitlinetype[1]
+      col <- alpha(coords$fitcolour, coords$fitalpha)
+      if (length(unique(col)) == 1) {
+        col <- col[1]
+      } else {
+        col <- "black"
+      }
+
+      grid::linesGrob(
+        fit$x, fit$y,
+        default.units = "native",
+        gp = grid::gpar(
+          col = col,
+          lwd = coords$fitsize[1] * .pt,
+          lty = coords$fitlinetype[1]
+        )
       )
-    )
+    }, warning=function(e) {
+      warning("Unable to compute LOESS smooth.")
+      grid::nullGrob()
+    }, error=function(e) {
+      warning("Unable to compute LOESS smooth.")
+      grid::nullGrob()
+    })
   },
 
   draw_key = draw_key_smooth
