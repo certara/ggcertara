@@ -712,13 +712,21 @@ print.gof_list <- function(x, ...) {
 #' Layout gof plots
 #' @rdname gof
 #' @export
-gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
+gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
 {
-  p <- purrr::reduce(p, `+`)
+  defaults <- list(guides="collect")
   if (!is.null(layout)) {
-    p <- p + patchwork::plot_layout(nrow=layout[1], ncol=layout[2], guides="collect")
+    if (isTRUE(transpose)) {
+      defaults <- c(list(nrow=layout[2], ncol=layout[1], byrow=FALSE), defaults)
+    } else {                       
+      defaults <- c(list(nrow=layout[1], ncol=layout[2], byrow=TRUE), defaults)
+    }
   }
-  p
+  args <- list(...)
+  args <- args[names(args) %in% names(formals(patchwork::plot_layout))]
+  toset <- !(names(defaults) %in% names(args))
+  args <- c(args, defaults[toset])
+  purrr::reduce(p, `+`) + do.call(patchwork::plot_layout, args)
 }
 
 #' Goodness-of-fit diagnostic plots
@@ -729,11 +737,13 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' @param p A \code{list} of `ggplot` objects to be laid out.
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
-#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @param transpose Should the layout be transposed (rows become columns)? 
+#' @param ... Additional arguments passed to other methods (e.g. \code{\link{baseplot}}).
 #' @export
 gof <- function(data=NULL,
                 panels=c(3, 4, 7, 8, 9, 10),
                 layout=c(ceiling(length(panels)/2), 2),
+                transpose=FALSE,
                 labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
@@ -746,7 +756,7 @@ gof <- function(data=NULL,
     p <- p[[panels]]
   } else {
     p <- p[panels]
-    p <- gof_layout(p, layout)
+    p <- gof_layout(p, layout=layout, transpose=transpose, ...)
   }
   p
 }
