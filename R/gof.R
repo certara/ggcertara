@@ -720,7 +720,7 @@ gof_list <- function(data=NULL,
   p <- list()
 
   if (is.null(data)) {
-    data <- gof_read_data(rundir)
+    data <- gof_read_data(rundir=rundir)
   }
 
   # Histogram of CWRES
