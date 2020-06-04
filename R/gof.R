@@ -104,11 +104,11 @@ get_label <- function(x, labels=gof_labels()) {
 
 
 #' Customized geoms
-#' @inheritParams ggplot2::geom_point
 #' @name certara_geom
 NULL
 
 #' @rdname certara_geom
+#' @inheritParams ggplot2::geom_point
 #' @export
 geom_point_c <- function(mapping = NULL, data = NULL,
                         stat = "identity", position = "identity",
@@ -143,10 +143,79 @@ GeomPointC <- ggproto("GeomPointC", GeomPoint,
 )
 
 #' @rdname certara_geom
+#' @inheritParams ggplot2::geom_line
+#' @export
+geom_fitline_c <- function(mapping = NULL, data = NULL, stat = "identity",
+                      position = "identity", na.rm = FALSE, orientation = NA,
+                      show.legend = NA, inherit.aes = TRUE, ...) {
+  layer(
+    data = data,
+    mapping = mapping,
+    stat = stat,
+    geom = GeomFitlineC,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(
+      na.rm = na.rm,
+      orientation = orientation,
+      ...
+    )
+  )
+}
+
+#' @rdname certara_geom
+#' @format NULL
+#' @usage NULL
+#' @export
+GeomFitlineC <- ggproto("GeomFitlineC", GeomLine,
+
+  required_aes = c("x", "y"),
+
+  default_aes = aes(
+    fitcolour = "#ee3124", fitsize = 1,
+    fitalpha = NA, fitlinetype = 1
+    ),
+
+  handle_na = function(self, data, params) {
+    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+    nm <- names(data2)
+    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
+    nm <- ifelse(nm=="fitcolor",    "color",    nm)
+    nm <- ifelse(nm=="fitsize",     "size",     nm)
+    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
+    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
+    names(data2) <- nm
+    data3 <- self$super()$handle_na(data=data2, params=params)
+    nm <- names(data3)
+    nm <- ifelse(nm=="colour",   "fitcolour",   nm)
+    nm <- ifelse(nm=="color",    "fitcolor",    nm)
+    nm <- ifelse(nm=="size",     "fitsize",     nm)
+    nm <- ifelse(nm=="alpha",    "fitalpha",    nm)
+    nm <- ifelse(nm=="linetype", "fitlinetype", nm)
+    names(data3) <- nm
+    data3
+  },
+
+  draw_panel = function(self, data, ...) {
+    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+    nm <- names(data2)
+    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
+    nm <- ifelse(nm=="fitcolor",    "color",    nm)
+    nm <- ifelse(nm=="fitsize",     "size",     nm)
+    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
+    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
+    names(data2) <- nm
+    self$super()$draw_panel(data=data2, ...)
+  }
+)
+
+#' @rdname certara_geom
+#' @param geom Which underlying \code{geom} to use to do the actual rendering.
 #' @inheritParams stats::scatter.smooth
 #' @export
 geom_loess_c <- function(mapping = NULL, data = NULL,
-                       stat = "identity", position = "identity",
+                       geom = "fitline_c", position = "identity",
                        ...,
                        span = 2/3,
                        degree = 1,
@@ -157,8 +226,8 @@ geom_loess_c <- function(mapping = NULL, data = NULL,
   ggplot2::layer(
     data = data,
     mapping = mapping,
-    stat = stat,
-    geom = GeomLoessC,
+    stat = StatLoessC,
+    geom = geom,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
@@ -173,49 +242,28 @@ geom_loess_c <- function(mapping = NULL, data = NULL,
 }
 
 #' @rdname certara_geom
+#' @export
+stat_loess_c <- geom_loess_c
+
+#' @rdname certara_geom
 #' @format NULL
 #' @usage NULL
 #' @export
-GeomLoessC <- ggproto("GeomLoessC", Geom,
+StatLoessC <- ggproto("StatLoessC", Stat,
   required_aes = c("x", "y"),
-  default_aes = aes(
-    fitcolour = "#ee3124", fitsize = 1,
-    fitalpha = NA, fitlinetype = 1
-    ),
 
-  draw_panel = function(data, panel_params, coord, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
-
-    coords <- coord$transform(data, panel_params)
-
+  compute_group = function(data, scales, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
     tryCatch({
-      fit <- loess.smooth(coords$x, coords$y, span=span, degree=degree, family=family)
-
-      col <- alpha(coords$fitcolour, coords$fitalpha)
-      if (length(unique(col)) == 1) {
-        col <- col[1]
-      } else {
-        col <- "black"
-      }
-
-      grid::linesGrob(
-        fit$x, fit$y,
-        default.units = "native",
-        gp = grid::gpar(
-          col = col,
-          lwd = coords$fitsize[1] * .pt,
-          lty = coords$fitlinetype[1]
-        )
-      )
+      fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
+      data.frame(x=fit$x, y=fit$y)
     }, warning=function(e) {
       warning("Unable to compute LOESS smooth.")
-      grid::nullGrob()
+      data.frame(x=numeric(0), y=numeric(0))
     }, error=function(e) {
       warning("Unable to compute LOESS smooth.")
-      grid::nullGrob()
+      data.frame(x=numeric(0), y=numeric(0))
     })
-  },
-
-  draw_key = draw_key_smooth
+  }
 )
 
 #' A coordinate system that is symmetric about \eqn{x=0}.
@@ -419,12 +467,13 @@ gof_read_data <- function(file=NULL, rundir=getwd()) {
 #' Those points belonging to the subset will be drawn with a different color
 #' and symbol, and a legend will appear as well.
 #' @param ... Additional arguments (ignored).
+#' @param loess.args A \code{list} of arguments passed to \code{\link{geom_loess_c}}.
 #' @return  A \code{ggplot} object.
 #' @export
 gof_baseplot <- function(data, highlight, ..., loess.args=list()) {
   g <- ggplot(data) +
     geom_point_c() +
-    do.call(geom_loess_c, as.list(loess.args)) +
+    do.call(geom_loess_c, c(list(mapping=aes(group=NA)), as.list(loess.args))) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
 
@@ -594,7 +643,7 @@ gof_histogram <- function(data, x, labels=gof_labels(), symm_x=if (isTRUE(log_x)
   g <- ggplot(data, aes(x={{ x }})) +
     labs(x=xlb, y="Density") +
     geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
-    stat_density(geom="line", col="#ee3124", size=1) +
+    stat_density(geom="fitline_c") +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
   if (isTRUE(log_x)) {
@@ -634,8 +683,8 @@ gof_qqplot <- function(data, x, labels=gof_labels()) {
   g <- ggplot(data, aes(sample={{ x }})) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
-    stat_qq(color="#2b398b", alpha=0.3) +
-    stat_qq_line(color="#ee3124", size=1) +
+    stat_qq(geom="point_c") +
+    stat_qq_line(geom="fitline_c") +
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
@@ -701,6 +750,8 @@ gof_default_panels <- function(...) {
 }
 
 #' List of gof plots
+#' @param empty Return an empty list.
+#' @param all Return a list of all panels.
 #' @rdname gof
 #' @export
 gof_list <- function(data=NULL,
@@ -825,7 +876,7 @@ gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
 #' @param transpose Should the layout be transposed (rows become columns)? 
-#' @param ... Additional arguments passed to other methods (e.g. \code{\link{baseplot}}).
+#' @param ... Additional arguments passed to other methods (e.g. \code{baseplot}).
 #' @export
 gof <- function(data=NULL,
                 panels=gof_default_panels(),
@@ -842,7 +893,7 @@ gof <- function(data=NULL,
   if (length(p) == 1) {
     p[[1]]
   } else {
-    gof_layout(p, layout=layout, transpose=transpose, ...)
+    gof_layout(p, layout=layout, transpose=transpose)
   }
 }
 

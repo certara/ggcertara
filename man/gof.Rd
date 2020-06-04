@@ -35,6 +35,10 @@ gof(
 
 \item{panels}{A \code{numeric} vector specifying the panels desired.}
 
+\item{empty}{Return an empty list.}
+
+\item{all}{Return a list of all panels.}
+
 \item{labels}{A named \code{list} of labels.}
 
 \item{baseplot}{A function that returns a \code{ggplot} object to use as the
@@ -42,7 +46,7 @@ base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{rundir}{A directory in which to search.}
 
-\item{...}{Additional arguments passed to other methods (e.g. \code{\link{baseplot}}).}
+\item{...}{Additional arguments passed to other methods (e.g. \code{baseplot}).}
 
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 
