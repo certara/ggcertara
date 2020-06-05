@@ -24,7 +24,6 @@ table {
 </style>
 
 ```{r echo=FALSE}
-knitr::opts_knit$set(root.dir=system.file("sample-data", package="ggcertara"))
 knitr::opts_chunk$set(warning=FALSE, message=TRUE, comment="#>", dpi=300, out.width="80%")
 ```
 
@@ -71,8 +70,14 @@ the data will also be filtered on an `mdv` column, if present).
 Alternatively, the `sdtab` file that is commonly used with PsN/Xpose will
 also be detected.
 
-```{r fig.width=6, fig.height=9, out.width="70%"}
+```{r eval=FALSE}
 gof()
+```
+```{r echo=FALSE, fig.width=6, fig.height=9, out.width="70%"}
+dat <- nmtable1
+names(dat) <- tolower(names(dat))
+dat <- subset(dat, mdv==0)
+gof(dat)
 ```
 
 By default, the `gof()` function produces a figure with 6 panels arranged in
@@ -109,7 +114,7 @@ vignette we will pass this data to the `gof()` function. We remember to
 convert the column names to lower case and to filter out only the rows that
 contain observations (as indicated by MDV=0).
 
-```{r}
+```{r, eval=F}
 dat <- read.csv("nmtable1.csv")
 names(dat) <- tolower(names(dat))
 dat <- subset(dat, mdv==0)
@@ -244,7 +249,7 @@ labels, as these will appear in the legend):
 dat$outlier <- factor(abs(dat$cwres) > 2.5, labels=c("|CWRES| \U{2264} 2.5", "|CWRES| > 2.5"))
 ```
 
-Then, use th `highlight` option, like this:
+Then, use the `highlight` option, like this:
 
 ```{r fig.width=6, fig.height=10, out.width="70%"}
 gof(dat, highlight=outlier)

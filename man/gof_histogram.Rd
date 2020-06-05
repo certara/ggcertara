@@ -7,7 +7,7 @@
 gof_histogram(
   data,
   x,
-  labels = getOption("gof.labels"),
+  labels = gof_labels(),
   symm_x = if (isTRUE(log_x)) 1 else 0,
   log_x = F
 )

@@ -211,12 +211,12 @@ theme_certara <- function(base_size=11, base_family="",
 
         plot.title=element_text(
             size=rel(1.2),
-            hjust=0.5, 
+            hjust=0, 
             vjust=1,
             margin=margin(b=half_line)),
         
         plot.subtitle=element_text(
-            hjust=0.5, 
+            hjust=0, 
             vjust=1,
             margin=margin(b=half_line)),
         
@@ -277,16 +277,26 @@ certara_pal <- function(palnum=1) {
     pal.list <- list(
 
         # Palette 1
-        c("#29398c",  # dark blue
-          "#b8a394",  # beige
-          "#f98068",  # salmon
-          "#72cbed",  # light blue
+        c("#067f97",  # dark cyan
           "#b7a148",  # yellow-green
           "#7059a6",  # purple
-          "#067f97",  # dark cyan
+          "#f98068",  # salmon
+          "#b8a394",  # beige
+          "#72cbed",  # light blue
+          "#29398c",  # dark blue
           "#475c6b"), # charcoal
 
         # Palette 2
+        c("#093b6d",  # dark blue
+          "#32a17e",  # sort of green
+          "#d89a17",  # darkish yellow
+          "#9c8777",  # beige?
+          "#5cc8f7",  # light blue
+          "#d64d20",  # reddish orange
+          "#7059a6",  # purple
+          "#336343"), # dark green
+
+        # Palette 3
         c("#4682ac",  # blue
           "#ee3124",  # red
           "#fdbb2f",  # yellow-gold
@@ -296,27 +306,7 @@ certara_pal <- function(palnum=1) {
           "#336343",  # dark green
           "#52ccbb"), # mint
 
-        # Palette 3
-        c("#093b6d",  # dark blue
-          "#5cc8f7",  # light blue
-          "#d64d20",  # reddish orange
-          "#32a17e",  # sort of green
-          "#d89a17",  # darkish yellow
-          "#7059a6",  # purple
-          "#336343",  # dark green
-          "#9c8777"), # beige?
-
         # Palette 4
-        c("#279594",  # teal
-          "#e07070",  # pink
-          "#5cc8f7",  # light blue
-          "#ef761b",  # orange
-          "#113df2",  # bright blue
-          "#f2c611",  # yellow
-          "#52ccbb",  # mint
-          "#a52f43"), # dark red
-
-        # Palette 5
         c("#29398C",  # dark blue
           "#336343",  # dark green
           "#803333",  # dark red
@@ -324,7 +314,17 @@ certara_pal <- function(palnum=1) {
           "#067F97",  # dark cyan
           "#B7A148",  # dark yellow
           "#7059A6",  # purple
-          "#75604D")  # brown
+          "#75604D"), # brown
+
+        # Palette 5
+        c("#279594",  # teal
+          "#e07070",  # pink
+          "#5cc8f7",  # light blue
+          "#ef761b",  # orange
+          "#113df2",  # bright blue
+          "#f2c611",  # yellow
+          "#52ccbb",  # mint
+          "#a52f43")  # dark red
     )
 
     cols <- unlist(pal.list[((1:length(pal.list) + (palnum - 2)) %% length(pal.list)) + 1])

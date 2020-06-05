@@ -19,7 +19,7 @@ log_xy(g, limits = NULL)
 \item{limits}{Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.}
 }
 \value{
-g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
+A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 }
 \description{
 Use log scales

@@ -4,7 +4,7 @@
 NULL
 
 #' Default labels
-default.labels=list(
+default.labels <- list(
   dv    = "Observed Value",
   pred  = "Population Prediction",
   ipred = "Individual Prediction",
@@ -16,19 +16,61 @@ default.labels=list(
 
 .onLoad <- function(libname, pkgname) {
   op <- list(
-    gof.labels = default.labels,
-    gof.units.dv = NA,
-    gof.units.time = NA,
-    gof.units.tad = NA
+    gof.label.dv    = default.labels$dv,
+    gof.label.pred  = default.labels$pred,
+    gof.label.ipred = default.labels$ipred,
+    gof.label.cwres = default.labels$cwres,
+    gof.label.iwres = default.labels$iwres,
+    gof.label.time  = default.labels$time,
+    gof.label.tad   = default.labels$tad,
+    gof.units.dv    = NA,
+    gof.units.time  = NA,
+    gof.units.tad   = NA,
+    gof.scale.dv    = "linear",
+    gof.scale.time  = "linear",
+    gof.scale.tad   = "linear"
   )
   toset <- !(names(op) %in% names(options()))
   if (any(toset)) options(op[toset])
   invisible()
 }
 
+#' Labels for GOF plots
+#'
+#' @param ... Named character arguments will override the defaults.
+#'
+#' @details This function can be used to get and set the axis labels for GOF
+#' plots.  The default labels are taken from \code{\link{options}} that start
+#' with the prefix \code{gof.label.}, for example \code{gof.label.dv},
+#' \code{gof.label.ipred} and so on.  This function extracts those options into
+#' a named list (without the prefix), and allows any number of them to be
+#' overridden.
+#'
+#' @return A named list.
+#'
+#' @examples
+#' gof_labels()
+#'
+#' # Override a label
+#' gof_labels(tad="Time After Start of Infusion")
+#'
+#' \dontrun{
+#' # Change the default
+#' options(gof.label.tad="Time After Start of Infusion")
+#' gof_labels()
+#' }
+#' @export
+gof_labels <- function(...) {
+  l <- options()[grepl("^gof\\.label\\.", names(options()))]
+  names(l) <- sub("^gof\\.label\\.", "", names(l))
+  args <- list(...)
+  l[names(args)] <- args
+  l
+}
+
 # This is an internal function that constructs labels for plots.  If it
 # recognizes certain variable names, it will add units from global options.
-get_label <- function(x, labels=getOption("gof.labels")) {
+get_label <- function(x, labels=gof_labels()) {
   x <- rlang::enquo(x)
   xlb <- tryCatch(rlang::eval_tidy(x, data=labels), error=function(e) NULL)
   if (!is.null(xlb)) {
@@ -62,11 +104,11 @@ get_label <- function(x, labels=getOption("gof.labels")) {
 
 
 #' Customized geoms
-#' @inheritParams ggplot2::geom_point
 #' @name certara_geom
 NULL
 
 #' @rdname certara_geom
+#' @inheritParams ggplot2::geom_point
 #' @export
 geom_point_c <- function(mapping = NULL, data = NULL,
                         stat = "identity", position = "identity",
@@ -101,10 +143,79 @@ GeomPointC <- ggproto("GeomPointC", GeomPoint,
 )
 
 #' @rdname certara_geom
+#' @inheritParams ggplot2::geom_line
+#' @export
+geom_fitline_c <- function(mapping = NULL, data = NULL, stat = "identity",
+                      position = "identity", na.rm = FALSE, orientation = NA,
+                      show.legend = NA, inherit.aes = TRUE, ...) {
+  layer(
+    data = data,
+    mapping = mapping,
+    stat = stat,
+    geom = GeomFitlineC,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(
+      na.rm = na.rm,
+      orientation = orientation,
+      ...
+    )
+  )
+}
+
+#' @rdname certara_geom
+#' @format NULL
+#' @usage NULL
+#' @export
+GeomFitlineC <- ggproto("GeomFitlineC", GeomLine,
+
+  required_aes = c("x", "y"),
+
+  default_aes = aes(
+    fitcolour = "#ee3124", fitsize = 1,
+    fitalpha = NA, fitlinetype = 1
+    ),
+
+  handle_na = function(self, data, params) {
+    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+    nm <- names(data2)
+    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
+    nm <- ifelse(nm=="fitcolor",    "color",    nm)
+    nm <- ifelse(nm=="fitsize",     "size",     nm)
+    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
+    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
+    names(data2) <- nm
+    data3 <- self$super()$handle_na(data=data2, params=params)
+    nm <- names(data3)
+    nm <- ifelse(nm=="colour",   "fitcolour",   nm)
+    nm <- ifelse(nm=="color",    "fitcolor",    nm)
+    nm <- ifelse(nm=="size",     "fitsize",     nm)
+    nm <- ifelse(nm=="alpha",    "fitalpha",    nm)
+    nm <- ifelse(nm=="linetype", "fitlinetype", nm)
+    names(data3) <- nm
+    data3
+  },
+
+  draw_panel = function(self, data, ...) {
+    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+    nm <- names(data2)
+    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
+    nm <- ifelse(nm=="fitcolor",    "color",    nm)
+    nm <- ifelse(nm=="fitsize",     "size",     nm)
+    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
+    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
+    names(data2) <- nm
+    self$super()$draw_panel(data=data2, ...)
+  }
+)
+
+#' @rdname certara_geom
+#' @param geom Which underlying \code{geom} to use to do the actual rendering.
 #' @inheritParams stats::scatter.smooth
 #' @export
 geom_loess_c <- function(mapping = NULL, data = NULL,
-                       stat = "identity", position = "identity",
+                       geom = "fitline_c", position = "identity",
                        ...,
                        span = 2/3,
                        degree = 1,
@@ -115,8 +226,8 @@ geom_loess_c <- function(mapping = NULL, data = NULL,
   ggplot2::layer(
     data = data,
     mapping = mapping,
-    stat = stat,
-    geom = GeomLoessC,
+    stat = StatLoessC,
+    geom = geom,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
@@ -131,40 +242,28 @@ geom_loess_c <- function(mapping = NULL, data = NULL,
 }
 
 #' @rdname certara_geom
+#' @export
+stat_loess_c <- geom_loess_c
+
+#' @rdname certara_geom
 #' @format NULL
 #' @usage NULL
 #' @export
-GeomLoessC <- ggproto("GeomLoessC", Geom,
+StatLoessC <- ggproto("StatLoessC", Stat,
   required_aes = c("x", "y"),
-  default_aes = aes(
-    fitcolour = "#ee3124", fitsize = 1,
-    fitalpha = NA, fitlinetype = 1
-    ),
 
-  draw_panel = function(data, panel_params, coord, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
-
-    coords <- coord$transform(data, panel_params)
-
-    fit <- loess.smooth(coords$x, coords$y, span=span, degree=degree, family=family)
-    col <- alpha(coords$fitcolour, coords$fitalpha)
-    if (length(unique(col)) == 1) {
-      col <- col[1]
-    } else {
-      col <- "black"
-    }
-
-    grid::linesGrob(
-      fit$x, fit$y,
-      default.units = "native",
-      gp = grid::gpar(
-        col = col,
-        lwd = coords$fitsize[1] * .pt,
-        lty = coords$fitlinetype[1]
-      )
-    )
-  },
-
-  draw_key = draw_key_smooth
+  compute_group = function(data, scales, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
+    tryCatch({
+      fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
+      data.frame(x=fit$x, y=fit$y)
+    }, warning=function(e) {
+      warning("Unable to compute LOESS smooth.")
+      data.frame(x=numeric(0), y=numeric(0))
+    }, error=function(e) {
+      warning("Unable to compute LOESS smooth.")
+      data.frame(x=numeric(0), y=numeric(0))
+    })
+  }
 )
 
 #' A coordinate system that is symmetric about \eqn{x=0}.
@@ -250,7 +349,7 @@ CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
 #'
 #' @param g A \code{ggplot2} object.
 #' @param limits Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.
-#' @return g A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
+#' @return A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
 #' @name logscales
 NULL
 
@@ -368,12 +467,13 @@ gof_read_data <- function(file=NULL, rundir=getwd()) {
 #' Those points belonging to the subset will be drawn with a different color
 #' and symbol, and a legend will appear as well.
 #' @param ... Additional arguments (ignored).
+#' @param loess.args A \code{list} of arguments passed to \code{\link{geom_loess_c}}.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_baseplot <- function(data, highlight, ...) {
+gof_baseplot <- function(data, highlight, ..., loess.args=list()) {
   g <- ggplot(data) +
     geom_point_c() +
-    geom_loess_c() +
+    do.call(geom_loess_c, c(list(mapping=aes(group=NA)), as.list(loess.args))) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
 
@@ -400,7 +500,7 @@ gof_baseplot <- function(data, highlight, ...) {
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_residual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_residual <- function(data, x, y, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   xlb <- get_label({{ x }}, labels)
   ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
@@ -417,7 +517,7 @@ gof_residual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=go
 
 #' @rdname gof_residual
 #' @export
-gof_absresidual <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_absresidual <- function(data, x, y, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   xlb <- get_label({{ x }}, labels)
   ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
@@ -446,7 +546,7 @@ gof_absresidual <- function(data, x, y, labels=getOption("gof.labels"), baseplot
 #' @return  A \code{ggplot} object.
 #' @param ... Additional arguments, passed to \code{baseplot}.
 #' @export
-gof_identity <- function(data, x, y, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+gof_identity <- function(data, x, y, labels=gof_labels(), baseplot=gof_baseplot, log_xy=F, ...) {
   xlb <- get_label({{ x }}, labels)
   ylb <- get_label({{ y }}, labels)
   g <- baseplot(data, ...) +
@@ -476,56 +576,56 @@ NULL
 #' Plot CWRES vs. PRED
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_cwres_vs_pred <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_residual(data, x=.data$pred, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TIME
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_cwres_vs_time <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_residual(data, x=.data$time, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot CWRES vs. TAD
 #' @rdname gofplots
 #' @export
-gof_cwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_cwres_vs_tad <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_residual(data, x=.data$tad, y=.data$cwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_absiwres_vs_ipred <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_absresidual(data, x=.data$ipred, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TIME
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_time <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_absiwres_vs_time <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_absresidual(data, x=.data$time, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot |IWRES| vs. TAD
 #' @rdname gofplots
 #' @export
-gof_absiwres_vs_tad <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_x=F, ...) {
+gof_absiwres_vs_tad <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_x=F, ...) {
   gof_absresidual(data, x=.data$tad, y=.data$iwres, labels=labels, baseplot=baseplot, log_x=log_x, ...)
 }
 
 #' Plot DV vs. IPRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_ipred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+gof_dv_vs_ipred <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_xy=F, ...) {
   gof_identity(data, x=.data$ipred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
 #' Plot DV vs. PRED
 #' @rdname gofplots
 #' @export
-gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_baseplot, log_xy=F, ...) {
+gof_dv_vs_pred <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log_xy=F, ...) {
   gof_identity(data, x=.data$pred, y=.data$dv, labels=labels, baseplot=baseplot, log_xy=log_xy, ...)
 }
 
@@ -537,13 +637,13 @@ gof_dv_vs_pred <- function(data, labels=getOption("gof.labels"), baseplot=gof_ba
 #' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
+gof_histogram <- function(data, x, labels=gof_labels(), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
   xlb <- get_label({{ x }}, labels)
   density <- NULL
   g <- ggplot(data, aes(x={{ x }})) +
     labs(x=xlb, y="Density") +
     geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
-    stat_density(geom="line", col="#ee3124", size=1) +
+    stat_density(geom="fitline_c") +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
   if (isTRUE(log_x)) {
@@ -568,7 +668,7 @@ gof_histogram <- function(data, x, labels=getOption("gof.labels"), symm_x=if (is
 #' Histogram of CWRES
 #' @rdname gofplots
 #' @export
-gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
+gof_cwres_histogram <- function(data, labels=gof_labels()) {
   gof_histogram(data, x=.data$cwres, labels=labels, log_x=F)
 }
 
@@ -578,13 +678,13 @@ gof_cwres_histogram <- function(data, labels=getOption("gof.labels")) {
 #' @param labels A named \code{list} of labels.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_qqplot <- function(data, x, labels=getOption("gof.labels")) {
+gof_qqplot <- function(data, x, labels=gof_labels()) {
   xlb <- get_label({{ x }}, labels)
   g <- ggplot(data, aes(sample={{ x }})) +
     labs(x="Theoritical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
-    stat_qq(color="#2b398b", alpha=0.3) +
-    stat_qq_line(col="#ee3124", size=1) +
+    stat_qq(geom="point_c") +
+    stat_qq_line(geom="fitline_c") +
     geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
@@ -594,24 +694,85 @@ gof_qqplot <- function(data, x, labels=getOption("gof.labels")) {
 #' QQ-plot of CWRES
 #' @rdname gofplots
 #' @export
-gof_cwres_qqplot <- function(data, labels=getOption("gof.labels")) {
+gof_cwres_qqplot <- function(data, labels=gof_labels()) {
   gof_qqplot(data, x=.data$cwres, labels=labels)
 }
 
+#' The default GOF panels
+#'
+#' @param ... Ignored.
+#'
+#' @details 
+#' The default output of \code{\link{gof}} is consists of 6 panels arranged in
+#' a 3-by-2 grid. These are:
+#'
+#' \enumerate{
+#'   \item dv_vs_ipred
+#'   \item dv_vs_pred
+#'   \item cwres_vs_pred
+#'   \item cwres_vs_time
+#'   \item cwres_vs_tad
+#'   \item absiwres_vs_ipred
+#' }
+#'
+#' Most panels come a both a linear and log variant. Normally, the linear
+#' variant will be chosen, but in some cases it may make more sense for the log
+#' variants to be the default for certain panels. This can be achieved using
+#' \code{\link{options}} \code{gof.scale.*} (see Examples).
+#'
+#' @return A vector of panel numbers. 
+#'
+#' @examples
+#' gof_default_panels()
+#'
+#' \dontrun{
+#' # Change the default scale to log for dv/pred/ipred
+#' options(gof.scale.dv="log")
+#' gof_default_panels()
+#'
+#' # Change the default scale to log for time and tad
+#' options(gof.scale.time="log", gof.scale.tad="log")
+#' gof_default_panels()
+#' }
+#' @export
+gof_default_panels <- function(...) {
+  m1 <- (-1)^(getOption("gof.scale.dv")=="log")
+  m2 <- (-1)^(getOption("gof.scale.time")=="log")
+  m3 <- (-1)^(getOption("gof.scale.tad")=="log")
+  c(
+    3*m1, # dv_vs_ipred"
+    4*m1, # dv_vs_pred"
+    5*m1, # cwres_vs_pred"
+    6*m2, # cwres_vs_time"
+    7*m3, # cwres_vs_tad"
+    8*m1  # absiwres_vs_ipred"
+  )
+}
+
 #' List of gof plots
+#' @param empty Return an empty list.
+#' @param all Return a list of all panels.
 #' @rdname gof
 #' @export
 gof_list <- function(data=NULL,
-                labels=getOption("gof.labels"),
+                panels=gof_default_panels(),
+                empty=FALSE,
+                all=FALSE,
+                labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
 {
-  if (is.null(data)) {
-    data <- gof_read_data(rundir)
+
+  if (isTRUE(empty)) {
+    return(structure(list(), class="gof_list"))
   }
 
   p <- list()
+
+  if (is.null(data)) {
+    data <- gof_read_data(rundir=rundir)
+  }
 
   # Histogram of CWRES
   p[["cwres_histogram"]] <- gof_cwres_histogram(data, labels)
@@ -619,17 +780,11 @@ gof_list <- function(data=NULL,
   # QQ-plot of CWRES
   p[["cwres_qqplot"]] <- gof_cwres_qqplot(data, labels)
 
-  # DV vs. IPRED linear scale
+  # DV vs. IPRED
   p[["dv_vs_ipred"]] <- gof_dv_vs_ipred(data, labels, baseplot, ...)
 
-  # DV vs. PRED linear scale
+  # DV vs. PRED
   p[["dv_vs_pred"]] <- gof_dv_vs_pred(data, labels, baseplot, ...)
-
-  # DV vs. IPRED log scale
-  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
-
-  # DV vs. PRED log scale
-  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
 
   # CWRES vs. PRED
   p[["cwres_vs_pred"]] <- gof_cwres_vs_pred(data, labels, baseplot, ...)
@@ -649,6 +804,37 @@ gof_list <- function(data=NULL,
   # |IWRES| vs. TAD
   p[["absiwres_vs_tad"]] <- gof_absiwres_vs_tad(data, labels, baseplot, ...)
 
+  # DV vs. IPRED log scale
+  p[["dv_vs_ipred_log"]] <- gof_dv_vs_ipred(data, labels, baseplot, log_xy=TRUE, ...)
+
+  # DV vs. PRED log scale
+  p[["dv_vs_pred_log"]] <- gof_dv_vs_pred(data, labels, baseplot, log_xy=TRUE, ...)
+
+  # CWRES vs. PRED log scale
+  p[["cwres_vs_pred_log"]] <- gof_cwres_vs_pred(data, labels, baseplot, log_x=TRUE, ...)
+
+  # CWRES vs. TIME log scale
+  p[["cwres_vs_time_log"]] <- gof_cwres_vs_time(data, labels, baseplot, log_x=TRUE, ...)
+
+  # CWRES vs. TAD log scale
+  p[["cwres_vs_tad_log"]] <- gof_cwres_vs_tad(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. IPRED log scale
+  p[["absiwres_vs_ipred_log"]] <- gof_absiwres_vs_ipred(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. TIME log scale
+  p[["absiwres_vs_time_log"]] <- gof_absiwres_vs_time(data, labels, baseplot, log_x=TRUE, ...)
+
+  # |IWRES| vs. TAD log scale
+  p[["absiwres_vs_tad_log"]] <- gof_absiwres_vs_tad(data, labels, baseplot, log_x=TRUE, ...)
+
+  if (!isTRUE(all)) {
+    if (is.numeric(panels)) {
+      panels <- paste0(names(p)[abs(panels)], ifelse(panels <= -3, "_log", ""))
+    }
+    p <- p[panels]
+  }
+
   structure(p, class="gof_list")
 }
 
@@ -664,13 +850,21 @@ print.gof_list <- function(x, ...) {
 #' Layout gof plots
 #' @rdname gof
 #' @export
-gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
+gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
 {
-  p <- purrr::reduce(p, `+`)
+  defaults <- list(guides="collect")
   if (!is.null(layout)) {
-    p <- p + patchwork::plot_layout(nrow=layout[1], ncol=layout[2], guides="collect")
+    if (isTRUE(transpose)) {
+      defaults <- c(list(nrow=layout[2], ncol=layout[1], byrow=FALSE), defaults)
+    } else {                       
+      defaults <- c(list(nrow=layout[1], ncol=layout[2], byrow=TRUE), defaults)
+    }
   }
-  p
+  args <- list(...)
+  args <- args[names(args) %in% names(formals(patchwork::plot_layout))]
+  toset <- !(names(defaults) %in% names(args))
+  args <- c(args, defaults[toset])
+  purrr::reduce(p, `+`) + do.call(patchwork::plot_layout, args)
 }
 
 #' Goodness-of-fit diagnostic plots
@@ -681,26 +875,26 @@ gof_layout <- function(p, layout=c(ceiling(length(p)/2), 2))
 #' @param p A \code{list} of `ggplot` objects to be laid out.
 #' @param layout A \code{numeric} vector of length 2 giving the number of rows
 #' and column in which the panels are to be layed out (for multiple panels).
-#' @param ... Additional arguments, passed to \code{baseplot}.
+#' @param transpose Should the layout be transposed (rows become columns)? 
+#' @param ... Additional arguments passed to other methods (e.g. \code{baseplot}).
 #' @export
 gof <- function(data=NULL,
-                panels=c(3, 4, 7, 8, 9, 10),
+                panels=gof_default_panels(),
                 layout=c(ceiling(length(panels)/2), 2),
-                labels=getOption("gof.labels"),
+                transpose=FALSE,
+                labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
                 ...)
 {
 
-  p <- gof_list(data=data, labels=labels, baseplot=baseplot, rundir=rundir, ...)
+  p <- gof_list(data=data, panels=panels, labels=labels, baseplot=baseplot, rundir=rundir, ...)
 
-  if (length(panels) == 1) {
-    p <- p[[panels]]
+  if (length(p) == 1) {
+    p[[1]]
   } else {
-    p <- p[panels]
-    p <- gof_layout(p, layout)
+    gof_layout(p, layout=layout, transpose=transpose)
   }
-  p
 }
 
 # vim: ts=2 sw=2 et

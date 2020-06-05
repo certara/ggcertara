@@ -4,12 +4,13 @@
 \alias{gof_read_data}
 \title{Read gof data}
 \usage{
-gof_read_data(rundir = getwd(), file = NULL)
+gof_read_data(file = NULL, rundir = getwd())
 }
 \arguments{
-\item{rundir}{A directory in which to search.}
+\item{file}{A filename to read the data from. If not specified, a simple
+heuristic search in \code{rundir} is performed.}
 
-\item{file}{A filename to read the data from.}
+\item{rundir}{A directory in which to search.}
 }
 \value{
 A \code{data.frame}.

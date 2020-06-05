@@ -5,8 +5,11 @@
 \alias{certara_geom}
 \alias{geom_point_c}
 \alias{GeomPointC}
+\alias{geom_fitline_c}
+\alias{GeomFitlineC}
 \alias{geom_loess_c}
-\alias{GeomLoessC}
+\alias{stat_loess_c}
+\alias{StatLoessC}
 \title{Customized geoms}
 \usage{
 geom_point_c(
@@ -20,10 +23,36 @@ geom_point_c(
   inherit.aes = TRUE
 )
 
-geom_loess_c(
+geom_fitline_c(
   mapping = NULL,
   data = NULL,
   stat = "identity",
+  position = "identity",
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = NA,
+  inherit.aes = TRUE,
+  ...
+)
+
+geom_loess_c(
+  mapping = NULL,
+  data = NULL,
+  geom = "fitline_c",
+  position = "identity",
+  ...,
+  span = 2/3,
+  degree = 1,
+  family = "symmetric",
+  na.rm = FALSE,
+  show.legend = NA,
+  inherit.aes = TRUE
+)
+
+stat_loess_c(
+  mapping = NULL,
+  data = NULL,
+  geom = "fitline_c",
   position = "identity",
   ...,
   span = 2/3,
@@ -79,6 +108,13 @@ display.}
 rather than combining with them. This is most useful for helper functions
 that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
+
+\item{orientation}{The orientation of the layer. The default (\code{NA})
+automatically determines the orientation from the aesthetic mapping. In the
+rare event that this fails it can be given explicitly by setting \code{orientation}
+to either \code{"x"} or \code{"y"}. See the \emph{Orientation} section for more detail.}
+
+\item{geom}{Which underlying \code{geom} to use to do the actual rendering.}
 
 \item{span}{smoothness parameter for \code{loess}.}
 
