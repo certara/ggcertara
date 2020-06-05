@@ -9,7 +9,7 @@ gof_residual(
   data,
   x,
   y,
-  labels = getOption("gof.labels"),
+  labels = gof_labels(),
   baseplot = gof_baseplot,
   log_x = F,
   ...
@@ -19,7 +19,7 @@ gof_absresidual(
   data,
   x,
   y,
-  labels = getOption("gof.labels"),
+  labels = gof_labels(),
   baseplot = gof_baseplot,
   log_x = F,
   ...

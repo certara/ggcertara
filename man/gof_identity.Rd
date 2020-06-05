@@ -8,7 +8,7 @@ gof_identity(
   data,
   x,
   y,
-  labels = getOption("gof.labels"),
+  labels = gof_labels(),
   baseplot = gof_baseplot,
   log_xy = F,
   ...

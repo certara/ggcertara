@@ -4,7 +4,7 @@
 \alias{gof_baseplot}
 \title{Base plot for gof plots}
 \usage{
-gof_baseplot(data, highlight, ...)
+gof_baseplot(data, highlight, ..., loess.args = list())
 }
 \arguments{
 \item{data}{A \code{data.frame}.}
@@ -16,6 +16,8 @@ Those points belonging to the subset will be drawn with a different color
 and symbol, and a legend will appear as well.}
 
 \item{...}{Additional arguments (ignored).}
+
+\item{loess.args}{A \code{list} of arguments passed to \code{\link{geom_loess_c}}.}
 }
 \value{
 A \code{ggplot} object.

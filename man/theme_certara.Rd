@@ -55,7 +55,7 @@ scale_fill_certara_c(..., guide = "colourbar")
 \code{\link[ggplot2]{continuous_scale}()}.}
 
 \item{guide}{A function used to create a guide or its name. See
-\code{\link[ggplot2:guides]{guides()}} for more info.}
+\code{\link[ggplot2:guides]{guides()}} for more information.}
 }
 \value{
 An object of class \code{\link[ggplot2]{theme}()}.
