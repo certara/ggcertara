@@ -17,13 +17,12 @@ gof_list(
   ...
 )
 
-gof_layout(p, layout = NULL, transpose = FALSE, ...)
+gof_layout(p, nrow = NULL, ncol = NULL, byrow = TRUE, ...)
 
 gof(
   data = NULL,
   panels = gof_default_panels(),
-  layout = c(ceiling(length(panels)/2), 2),
-  transpose = FALSE,
+  layout = list(ncol = 3),
   labels = gof_labels(),
   baseplot = gof_baseplot,
   rundir = getwd(),
@@ -50,10 +49,18 @@ base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 
-\item{layout}{A \code{numeric} vector of length 2 giving the number of rows
-and column in which the panels are to be layed out (for multiple panels).}
+\item{nrow}{The dimensions of the grid to create - if both are \code{NULL} it
+will use the same logic as \link[ggplot2:facet_wrap]{facet_wrap()} to set the
+dimensions}
 
-\item{transpose}{Should the layout be transposed (rows become columns)?}
+\item{ncol}{The dimensions of the grid to create - if both are \code{NULL} it
+will use the same logic as \link[ggplot2:facet_wrap]{facet_wrap()} to set the
+dimensions}
+
+\item{byrow}{Analogous to \code{byrow} in \link[base:matrix]{matrix()}. If \code{FALSE} the
+plots will be filled in in column-major order}
+
+\item{layout}{A \code{list} of arguments to pass to \code{\link{gof_layout}} (for multiple panels).}
 }
 \description{
 List of gof plots
@@ -61,4 +68,7 @@ List of gof plots
 Layout gof plots
 
 Goodness-of-fit diagnostic plots
+}
+\seealso{
+\code{\link[patchwork]{plot_layout}}
 }
