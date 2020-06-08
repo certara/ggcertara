@@ -7,6 +7,7 @@
 gof_histogram(
   data,
   x,
+  bins = 20,
   labels = gof_labels(),
   symm_x = if (isTRUE(log_x)) 1 else 0,
   log_x = F
@@ -16,6 +17,8 @@ gof_histogram(
 \item{data}{A \code{data.frame}.}
 
 \item{x}{A numeric vector, evaulated within \code{data}.}
+
+\item{bins}{Number of bins to use for the histogram.}
 
 \item{labels}{A named \code{list} of labels.}
 

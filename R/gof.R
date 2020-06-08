@@ -634,17 +634,18 @@ gof_dv_vs_pred <- function(data, labels=gof_labels(), baseplot=gof_baseplot, log
 #' A generic function for histograms
 #' @param data A \code{data.frame}.
 #' @param x A numeric vector, evaulated within \code{data}.
+#' @param bins Number of bins to use for the histogram.
 #' @param labels A named \code{list} of labels.
 #' @param symm_x A number of \code{NULL}. If a number, the x-axis will be symmetric, centered around this number.
 #' @param log_x If \code{TRUE} then log-scale will be used for the x-axis.
 #' @return  A \code{ggplot} object.
 #' @export
-gof_histogram <- function(data, x, labels=gof_labels(), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
+gof_histogram <- function(data, x, bins=20, labels=gof_labels(), symm_x=if (isTRUE(log_x)) 1 else 0, log_x=F) {
   xlb <- get_label({{ x }}, labels)
   density <- NULL
   g <- ggplot(data, aes(x={{ x }})) +
     labs(x=xlb, y="Density") +
-    geom_histogram(aes(y=stat(density)), color="gray80", fill="gray80", bins=20) +
+    geom_histogram(aes(y=stat(density)), color=NA, fill="#9DA1BD", alpha=0.3, bins=bins) +
     stat_density(geom="fitline_c") +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
