@@ -137,8 +137,8 @@ geom_point_c <- function(mapping = NULL, data = NULL,
 #' @export
 GeomPointC <- ggproto("GeomPointC", GeomPoint,
   default_aes = aes(
-    shape = 19, colour = "#2b398b", size = 1.5, fill = NA,
-    alpha = 0.3, stroke = 0.5
+    shape = 19, colour = "#9DA1BD", size = 1.5, fill = NA,
+    alpha = 0.4, stroke = 0
   )
 )
 
@@ -478,13 +478,15 @@ gof_baseplot <- function(data, highlight, ..., loess.args=list()) {
     theme(aspect.ratio=1)
 
   if (!missing(highlight)) {
-    gl <- guide_legend("Legend", title.position="top")
+    gl1 <- guide_legend("", title.position="top")
+    gl2 <- guide_legend("", title.position="top", override.aes=list(size=3))
+    gl3 <- guide_legend("", title.position="top", override.aes=list(alpha=0.7))
     g <- g + aes(color={{ highlight }}, shape={{ highlight }}, size={{ highlight }}, alpha={{ highlight }}) +
-      guides(colour=gl, shape=gl, size=gl, alpha=gl) +
-      scale_colour_manual(values=c("#2b398b", "#ee3124")) +
-      scale_shape_manual(values=c(19, 13)) +
-      scale_size_manual(values=c(1.5, 3)) +
-      scale_alpha_manual(values=c(0.3, 1))
+      guides(colour=gl1, shape=gl1, size=gl2, alpha=gl3) +
+      scale_colour_manual(values=c(GeomPointC$default_aes$colour, "#ee3124")) +
+      scale_shape_manual(values=c(19, 16)) +
+      scale_size_manual(values=c(1.5, 2)) +
+      scale_alpha_manual(values=c(0.3, 0.5))
   }
   g
 }
@@ -741,10 +743,10 @@ gof_default_panels <- function(...) {
   m3 <- (-1)^(getOption("gof.scale.tad")=="log")
   c(
     3*m1, # dv_vs_ipred"
-    4*m1, # dv_vs_pred"
-    5*m1, # cwres_vs_pred"
     6*m2, # cwres_vs_time"
     7*m3, # cwres_vs_tad"
+    4*m1, # dv_vs_pred"
+    5*m1, # cwres_vs_pred"
     8*m1  # absiwres_vs_ipred"
   )
 }
@@ -849,17 +851,12 @@ print.gof_list <- function(x, ...) {
 
 #' Layout gof plots
 #' @rdname gof
+#' @inheritParams patchwork::plot_layout
+#' @seealso \code{\link[patchwork]{plot_layout}}
 #' @export
-gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
+gof_layout <- function(p, nrow=NULL, ncol=NULL, byrow=TRUE, ...)
 {
-  defaults <- list(guides="collect")
-  if (!is.null(layout)) {
-    if (isTRUE(transpose)) {
-      defaults <- c(list(nrow=layout[2], ncol=layout[1], byrow=FALSE), defaults)
-    } else {                       
-      defaults <- c(list(nrow=layout[1], ncol=layout[2], byrow=TRUE), defaults)
-    }
-  }
+  defaults <- list(nrow=nrow, ncol=ncol, byrow=byrow, guides="collect")
   args <- list(...)
   args <- args[names(args) %in% names(formals(patchwork::plot_layout))]
   toset <- !(names(defaults) %in% names(args))
@@ -873,15 +870,12 @@ gof_layout <- function(p, layout=NULL, transpose=FALSE, ...)
 #' @inheritParams gof_read_data
 #' @param panels A \code{numeric} vector specifying the panels desired.
 #' @param p A \code{list} of `ggplot` objects to be laid out.
-#' @param layout A \code{numeric} vector of length 2 giving the number of rows
-#' and column in which the panels are to be layed out (for multiple panels).
-#' @param transpose Should the layout be transposed (rows become columns)? 
+#' @param layout A \code{list} of arguments to pass to \code{\link{gof_layout}} (for multiple panels).
 #' @param ... Additional arguments passed to other methods (e.g. \code{baseplot}).
 #' @export
 gof <- function(data=NULL,
                 panels=gof_default_panels(),
-                layout=c(ceiling(length(panels)/2), 2),
-                transpose=FALSE,
+                layout=list(ncol=3),
                 labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
@@ -893,7 +887,7 @@ gof <- function(data=NULL,
   if (length(p) == 1) {
     p[[1]]
   } else {
-    gof_layout(p, layout=layout, transpose=transpose)
+    do.call(gof_layout, c(list(p), as.list(layout)))
   }
 }
 
