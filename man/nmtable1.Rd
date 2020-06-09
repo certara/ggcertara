@@ -4,7 +4,8 @@
 \name{nmtable1}
 \alias{nmtable1}
 \title{Sample model output table.}
-\format{A \code{data.frame} with 20 columns and 960 rows:
+\format{
+A \code{data.frame} with 20 columns and 960 rows:
 \describe{
   \item{ID}{Unique subject identifier}
   \item{TIME}{Time}
@@ -26,7 +27,8 @@
   \item{ETA1}{Individual estimated random effect on CL}
   \item{ETA2}{Individual estimated random effect on V}
   \item{ETA3}{Individual estimated random effect on KA}
-}}
+}
+}
 \usage{
 nmtable1
 }

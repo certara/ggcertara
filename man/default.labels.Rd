@@ -4,7 +4,9 @@
 \name{default.labels}
 \alias{default.labels}
 \title{Default labels}
-\format{An object of class \code{list} of length 7.}
+\format{
+An object of class \code{list} of length 7.
+}
 \usage{
 default.labels
 }
