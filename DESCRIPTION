@@ -1,13 +1,14 @@
 Package: ggcertara
 Type: Package
-Version: 0.2
-Date: 2020-03-13
+Version: 0.3
+Date: 2020-06-09
 Title: A ggplot2 theme for Certara CSC-iDD
 Authors@R: c(
     person("Benjamin", "Rich", role=c("aut", "cre"), email="benjamin.rich@certara.com"),
     person("Olivier", "Barriere", role=c("aut"), email="olivier.barriere@gmail.com"),
-    person("Ed", "Freshwater", role=c("aut"), email="Ed.Freshwater@certara.com"))
-Description: A theme to be used by Certara CSC-iDD for plotting with ggplot2.
+    person("Ed", "Freshwater", role=c("aut"), email="Ed.Freshwater@certara.com"),
+    person("Valeria", "D'Amico", role=c("rev"), email="Valeria.dAmico@certara.com"))
+Description: A theme and functions to be used by Certara CSC-iDD for plotting with ggplot2.
 URL: https://github/certara/ggcertara
 BugReports: https://github/certara/ggcertara/issues
 License: GPL-3
@@ -17,9 +18,9 @@ Imports:
     scales,
     rlang,
     purrr,
-    patchwork
+    patchwork (>= 1.0.0)
 Suggests: knitr
 VignetteBuilder: knitr
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.0.2.9000
+RoxygenNote: 7.1.0
