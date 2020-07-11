@@ -17,12 +17,12 @@ gof_list(
   ...
 )
 
-gof_layout(p, nrow = NULL, ncol = NULL, byrow = TRUE, ...)
+gof_layout(p, nrow = NULL, ncol = min(length(p), 3), byrow = TRUE, ...)
 
 gof(
   data = NULL,
   panels = gof_default_panels(),
-  layout = list(ncol = 3),
+  layout = NULL,
   labels = gof_labels(),
   baseplot = gof_baseplot,
   rundir = getwd(),

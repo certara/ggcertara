@@ -855,7 +855,7 @@ print.gof_list <- function(x, ...) {
 #' @inheritParams patchwork::plot_layout
 #' @seealso \code{\link[patchwork]{plot_layout}}
 #' @export
-gof_layout <- function(p, nrow=NULL, ncol=NULL, byrow=TRUE, ...)
+gof_layout <- function(p, nrow=NULL, ncol=min(length(p), 3), byrow=TRUE, ...)
 {
   defaults <- list(nrow=nrow, ncol=ncol, byrow=byrow, guides="collect")
   args <- list(...)
@@ -876,7 +876,7 @@ gof_layout <- function(p, nrow=NULL, ncol=NULL, byrow=TRUE, ...)
 #' @export
 gof <- function(data=NULL,
                 panels=gof_default_panels(),
-                layout=list(ncol=3),
+                layout=NULL,
                 labels=gof_labels(),
                 baseplot=gof_baseplot,
                 rundir=getwd(),
