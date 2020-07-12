@@ -277,14 +277,14 @@ certara_pal <- function(palnum=1) {
     pal.list <- list(
 
         # Palette 1
-        c("#067f97",  # dark cyan
-          "#b7a148",  # yellow-green
-          "#7059a6",  # purple
-          "#f98068",  # salmon
-          "#b8a394",  # beige
-          "#72cbed",  # light blue
-          "#29398c",  # dark blue
-          "#475c6b"), # charcoal
+        c("#4682ac",  # blue
+          "#ee3124",  # red
+          "#fdbb2f",  # yellow-gold
+          "#6d405d",  # burgundy?
+          "#093b6d",  # dark blue
+          "#2f71fd",  # bright blue
+          "#336343",  # dark green
+          "#52ccbb"), # mint
 
         # Palette 2
         c("#093b6d",  # dark blue
@@ -297,26 +297,16 @@ certara_pal <- function(palnum=1) {
           "#336343"), # dark green
 
         # Palette 3
-        c("#4682ac",  # blue
-          "#ee3124",  # red
-          "#fdbb2f",  # yellow-gold
-          "#6d405d",  # burgundy?
-          "#093b6d",  # dark blue
-          "#2f71fd",  # bright blue
-          "#336343",  # dark green
-          "#52ccbb"), # mint
+        c("#067f97",  # dark cyan
+          "#b7a148",  # yellow-green
+          "#7059a6",  # purple
+          "#f98068",  # salmon
+          "#b8a394",  # beige
+          "#72cbed",  # light blue
+          "#29398c",  # dark blue
+          "#475c6b"), # charcoal
 
         # Palette 4
-        c("#29398C",  # dark blue
-          "#336343",  # dark green
-          "#803333",  # dark red
-          "#B35D1B",  # dark orange
-          "#067F97",  # dark cyan
-          "#B7A148",  # dark yellow
-          "#7059A6",  # purple
-          "#75604D"), # brown
-
-        # Palette 5
         c("#279594",  # teal
           "#e07070",  # pink
           "#5cc8f7",  # light blue
@@ -324,7 +314,18 @@ certara_pal <- function(palnum=1) {
           "#113df2",  # bright blue
           "#f2c611",  # yellow
           "#52ccbb",  # mint
-          "#a52f43")  # dark red
+          "#a52f43"), # dark red
+
+        # Palette 5
+        c("#29398C",  # dark blue
+          "#336343",  # dark green
+          "#803333",  # dark red
+          "#B35D1B",  # dark orange
+          "#067F97",  # dark cyan
+          "#B7A148",  # dark yellow
+          "#7059A6",  # purple
+          "#75604D")  # brown
+
     )
 
     cols <- unlist(pal.list[((1:length(pal.list) + (palnum - 2)) %% length(pal.list)) + 1])

@@ -43,7 +43,7 @@ scale_colour_certara_c(..., guide = "colourbar")
 scale_fill_certara_c(..., guide = "colourbar")
 }
 \arguments{
-\item{base_size}{base font size}
+\item{base_size}{base font size, given in pts.}
 
 \item{base_family}{base font family}
 
