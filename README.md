@@ -12,7 +12,8 @@ This package needs to be installed from GitHub:
 
 ``` r
 require(remotes)
-remotes::install_github("certara/ggcertara")
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS="true")
+remotes::install_github("certara/ggcertara", upgrade="never")
 ```
 
 ## Usage
