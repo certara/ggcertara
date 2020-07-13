@@ -26,4 +26,4 @@
 #'   \item{ETA2}{Individual estimated random effect on V}
 #'   \item{ETA3}{Individual estimated random effect on KA}
 #' }
-"nmtable1"
+"nmtable"
