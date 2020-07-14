@@ -684,7 +684,7 @@ gof_cwres_histogram <- function(data, labels=gof_labels()) {
 gof_qqplot <- function(data, x, labels=gof_labels()) {
   xlb <- get_label({{ x }}, labels)
   g <- ggplot(data, aes(sample={{ x }})) +
-    labs(x="Theoritical Quantile", y="Sample Quantile") +
+    labs(x="Theoretical Quantile", y="Sample Quantile") +
     coord_symm_xy() +
     stat_qq(geom="point_c") +
     stat_qq_line(geom="fitline_c") +
