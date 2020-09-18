@@ -855,8 +855,12 @@ print.gof_list <- function(x, ...) {
 #' @inheritParams patchwork::plot_layout
 #' @seealso \code{\link[patchwork]{plot_layout}}
 #' @export
-gof_layout <- function(p, nrow=NULL, ncol=min(length(p), 3), byrow=TRUE, ...)
+gof_layout <- function(p, nrow=NULL, ncol=NULL, byrow=TRUE, ...)
 {
+  if (is.null(nrow) & is.null(ncol)) {
+    lp <- length(p)
+    ncol <- ifelse(lp==1, 1, ifelse(lp %in% c(2, 4), 2, 3))
+  }
   defaults <- list(nrow=nrow, ncol=ncol, byrow=byrow, guides="collect")
   args <- list(...)
   args <- args[names(args) %in% names(formals(patchwork::plot_layout))]
