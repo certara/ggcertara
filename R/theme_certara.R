@@ -89,7 +89,7 @@ theme_certara <- function(base_size=11, base_family="",
         axis.line.y=NULL,
 
         axis.text=element_text(
-            size=rel(0.7), 
+            size=rel(0.9), 
             colour="grey40"),
         
         axis.text.x=element_text(
@@ -155,10 +155,16 @@ theme_certara <- function(base_size=11, base_family="",
         legend.key.height=NULL,
         legend.key.width=NULL,
         
-        legend.text=element_text(size=rel(1.0), margin=margin(r=2*half_line, unit="pt")),
+        legend.text=element_text(
+            size=rel(0.9),
+            margin=margin(r=2*half_line, unit="pt")),
+
         legend.text.align=NULL,
 
-        legend.title=element_text(hjust=0), 
+        legend.title=element_text(
+            size=rel(0.9),
+            hjust=0), 
+
         legend.title.align=NULL,
         
         legend.position="bottom", 
