@@ -19,7 +19,12 @@ Imports:
     rlang,
     purrr,
     patchwork (>= 1.0.0)
-Suggests: knitr,kableExtra
+Suggests:
+    knitr,
+    kableExtra,
+    shiny,
+    colourpicker,
+    colorblindr
 VignetteBuilder: knitr
 LazyData: true
 Encoding: UTF-8
