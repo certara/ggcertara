@@ -2,10 +2,10 @@ suppressPackageStartupMessages({
   library(shiny)
   library(colourpicker)
   #library(extrafont)
-  #extrafont::loadfonts(device="win", quiet=T)
+  #extrafont::loadfonts(device="win", quiet=TRUE)
   library(ggplot2)
   library(patchwork)
-  library(colorblindr) # https://github.com/clauswilke/colorblindr
+  #library(colorblindr) # https://github.com/clauswilke/colorblindr
 })
 
 # Palette 1
@@ -27,7 +27,7 @@ c("#29398c",  # dark blue
   "#32a17e",  # sort of green
   "#d89a17",  # darkish yellow
   "#d64d20",  # reddish orange
-  "#5cc8f7",  # light blue
+  "#9da1bd",  # silver
   "#9c8777",  # beige
   "#7059a6",  # purple
   "#e07070",  # pink
@@ -48,23 +48,13 @@ c("#067f97",  # dark cyan
   "#52ccbb")  # mint
 
 
-# Blues & greens
-pal4 <-
-c("#4682ac",  # blue
-  "#2f71fd",  # bright blue
-  "#113df2",  # bright blue
-  "#5cc8f7",  # light blue
-  "#72cbed",  # light blue
-  "#52ccbb",  # mint
-  "#279594",  # teal
-  "#067f97",  # dark cyan
-  "#32a17e",  # sort of green
-  "#336343")  # dark green
+palall <- c(
 
 # Reds, oranges & yellow
-pal5 <-
-c("#803333",  # dark red
+
+  "#803333",  # dark red
   "#a52f43",  # dark red
+  "#e07070",  # pink
   "#ee3124",  # red
   "#f98068",  # salmon
   "#d64d20",  # reddish orange
@@ -72,20 +62,33 @@ c("#803333",  # dark red
   "#b35d1b",  # dark orange
   "#d89a17",  # darkish yellow
   "#fdbb2f",  # yellow-gold
-  "#f2c611")  # yellow
+  "#f2c611",  # yellow
 
-# Neutral colors (purple, pink, brown and gray)
-pal6 <-
-c("#b7a148",  # dark yellow
+  # Neutral colors (purple, brown and gray)
+
+  "#b7a148",  # dark yellow
   "#9c8777",  # light beige
   "#b8a394",  # dark beige
   "#75604D",  # brown
   "#6d405d",  # burgundy
-  "#e07070",  # pink
   "#7059A6",  # purple
-  "#29398c",  # dark blue
+  "#9da1bd",  # silver
+  "#475c6b",  # charcoal
   "#093b6d",  # dark blue
-  "#475c6b")  # charcoal
+
+  # Blues & greens
+
+  "#29398c",  # dark blue
+  "#113df2",  # bright blue
+  "#2f71fd",  # bright blue
+  "#4682ac",  # blue
+  "#72cbed",  # light blue
+  "#52ccbb",  # mint
+  "#279594",  # teal
+  "#067f97",  # dark cyan
+  "#32a17e",  # sort of green
+  "#336343"   # dark green
+)
 
 
 
@@ -96,24 +99,29 @@ shinyApp(
   ui = fluidPage(
     sidebarLayout(
       sidebarPanel(width=2,
-        sliderInput("ncol", "Number of colors", value=8, min=1, max=10, step=1, ticks=FALSE),
-        selectInput("pal", "Reset", choices=c("Group 1"="Pal1", "Group 2"="Pal2", "Group 3"="Pal3"), selected="Pal1"),
-        colourInput("col1", NULL, value=pal.init[1], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col2", NULL, value=pal.init[2], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col3", NULL, value=pal.init[3], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col4", NULL, value=pal.init[4], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col5", NULL, value=pal.init[5], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col6", NULL, value=pal.init[6], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col7", NULL, value=pal.init[7], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col8", NULL, value=pal.init[8], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col9", NULL, value=pal.init[9], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        colourInput("col10", NULL, value=pal.init[10], closeOnClick=T, palette="limited", allowedCols=c(pal4, pal5, pal6)),
-        radioButtons("selmode", "Color selection mode", c("Pre-specified"="limited", "Arbitrary"="square")),
-        selectizeInput("reord", "Reorder colors", choices=1:10, selected=1:10, multiple=T, options=list(plugins=list('drag_drop'))),
+        #selectInput("pal", "Reset", choices=c("Group 1"="Pal1", "Group 2"="Pal2", "Group 3"="Pal3"), selected="Pal1"),
+        colourInput("col1", "Color palette", value=pal.init[1], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col2", NULL, value=pal.init[2], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col3", NULL, value=pal.init[3], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col4", NULL, value=pal.init[4], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col5", NULL, value=pal.init[5], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col6", NULL, value=pal.init[6], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col7", NULL, value=pal.init[7], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col8", NULL, value=pal.init[8], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col9", NULL, value=pal.init[9], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        colourInput("col10", NULL, value=pal.init[10], closeOnClick=TRUE, palette="limited", allowedCols=c(palall)),
+        actionButton("reset", "Reset"),
+        #radioButtons("selmode", "Color selection mode", c("Pre-specified"="limited", "Arbitrary"="square")),
+        selectizeInput("reord", "Reorder colors", choices=1:10, selected=1:10, multiple=TRUE, options=list(plugins=list('drag_drop'))),
         actionButton("swap", "Swap"),
-        checkboxInput("colorblind", "Simulate color blindness")),
+        checkboxInput("colorblind", "Simulate color blindness"),
+        wellPanel(
+          sliderInput("plotwidth", "Plot width", value=1600, min=300, max=3000),
+          sliderInput("plotheight", "Plot height", value=850, min=300, max=3000),
+          sliderInput("plotres", "Plot resolution", value=200, min=50, max=500))),
       mainPanel(
-        plotOutput("plot", width="1600px", height="850px"),
+        plotOutput("plot", width="auto", height="auto"),
+        sliderInput("ncol", "Number of colors", value=10, min=1, max=10, step=1, ticks=FALSE),
         verbatimTextOutput("code", TRUE)))),
 
   server = function(input, output, session) {
@@ -130,9 +138,29 @@ shinyApp(
       }
     })
 
+    output$hasplotobj <- reactive({
+      !is.null(values$plotobj)
+    })
+    outputOptions(output, "hasplotobj", suspendWhenHidden=FALSE)
+
     observeEvent(input$pal, {
       updateSelectizeInput(session, "reord", selected=1:10)
-      pal <- switch(input$pal, Pal1=pal1, Pal2=pal2, Pal3=pal3, Pal4=pal4, Pal5=pal5, Pal6=pal6)
+      pal <- switch(input$pal, Pal1=pal1, Pal2=pal2, Pal3=pal3)
+      updateColourInput(session, "col1", value=pal[1])
+      updateColourInput(session, "col2", value=pal[2])
+      updateColourInput(session, "col3", value=pal[3])
+      updateColourInput(session, "col4", value=pal[4])
+      updateColourInput(session, "col5", value=pal[5])
+      updateColourInput(session, "col6", value=pal[6])
+      updateColourInput(session, "col7", value=pal[7])
+      updateColourInput(session, "col8", value=pal[8])
+      updateColourInput(session, "col9", value=pal[9])
+      updateColourInput(session, "col10", value=pal[10])
+    })
+
+    observeEvent(input$reset, {
+      updateSelectizeInput(session, "reord", selected=1:10)
+      pal <- pal1
       updateColourInput(session, "col1", value=pal[1])
       updateColourInput(session, "col2", value=pal[2])
       updateColourInput(session, "col3", value=pal[3])
@@ -174,18 +202,18 @@ shinyApp(
       updateSelectizeInput(session, "reord", selected=1:10)
     })
 
-    observeEvent(input$selmode, {
-        updateColourInput(session, "col1", palette=input$selmode)
-        updateColourInput(session, "col2", palette=input$selmode)
-        updateColourInput(session, "col3", palette=input$selmode)
-        updateColourInput(session, "col4", palette=input$selmode)
-        updateColourInput(session, "col5", palette=input$selmode)
-        updateColourInput(session, "col6", palette=input$selmode)
-        updateColourInput(session, "col7", palette=input$selmode)
-        updateColourInput(session, "col8", palette=input$selmode)
-        updateColourInput(session, "col9", palette=input$selmode)
-        updateColourInput(session, "col10", palette=input$selmode)
-    })
+    #observeEvent(input$selmode, {
+    #    updateColourInput(session, "col1", palette=input$selmode)
+    #    updateColourInput(session, "col2", palette=input$selmode)
+    #    updateColourInput(session, "col3", palette=input$selmode)
+    #    updateColourInput(session, "col4", palette=input$selmode)
+    #    updateColourInput(session, "col5", palette=input$selmode)
+    #    updateColourInput(session, "col6", palette=input$selmode)
+    #    updateColourInput(session, "col7", palette=input$selmode)
+    #    updateColourInput(session, "col8", palette=input$selmode)
+    #    updateColourInput(session, "col9", palette=input$selmode)
+    #    updateColourInput(session, "col10", palette=input$selmode)
+    #})
 
     dat <- reactive({
 
@@ -212,7 +240,8 @@ shinyApp(
       dat()[keep,]
     })
 
-    output$plot <- renderPlot(res=200, {
+    #output$plot <- renderPlot(res=function() input$plotres, width=function() input$plotwidth, height=function() input$plotheight, {
+    output$plot <- renderPlot(res=200, width=function() input$plotwidth, height=function() input$plotheight, {
 
       if (!is.null(values$plotobj)) {
         g <- values$plotobj +
@@ -220,6 +249,9 @@ shinyApp(
           scale_fill_manual(values=palr())
 
         if (input$colorblind) {
+          if (!requireNamespace("colorblindr", quietly = TRUE)) {
+            stop("This feature requires the 'colorblindr' package. Please install it from https://github.com/clauswilke/colorblindr.", call.=F)
+          }
           return(cvd_grid(g))
         } else {
           return(g)
@@ -262,6 +294,9 @@ shinyApp(
           panel.grid.minor=element_line(colour="grey90", size=0.3))
 
       if (input$colorblind) {
+        if (!requireNamespace("colorblindr", quietly = TRUE)) {
+          stop("This feature requires the 'colorblindr' package. Please install it from https://github.com/clauswilke/colorblindr.", call.=F)
+        }
         return(cvd_grid(g1 + labs(x=NULL, y=NULL)))
       }
 
@@ -269,8 +304,8 @@ shinyApp(
     })
 
     output$code <- renderText({
-      #values <- palr()[1:input$ncol]
-      values <- palr()
+      values <- palr()[1:input$ncol]
+      #values <- palr()
       values <- paste0("\"", values, "\"", collapse=", ")
 
       ggcolor <- sprintf("scale_color_manual(values=c(%s))", values)
