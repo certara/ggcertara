@@ -52,6 +52,8 @@ scale_fill_certara_c(..., guide = "colourbar")
 
 \item{base_rect_size}{base size for rect elements}
 
+\item{grid}{Which grid lines should appear? Horizontal only, both horizontal and vertical, or none (default).}
+
 \item{...}{Other arguments passed on to \code{\link[ggplot2]{discrete_scale}()} or
 \code{\link[ggplot2]{continuous_scale}()}.}
 
@@ -71,7 +73,7 @@ horizontal grid lines only (\code{theme_certara_hgrid()}).
 }
 \examples{
 
-\donttest{
+\dontrun{
 library(ggplot2)
 
 set.seed(123)

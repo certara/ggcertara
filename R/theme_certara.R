@@ -2,6 +2,7 @@
 #'
 #' @inheritParams ggplot2::theme_grey
 #' @inheritParams ggplot2::continuous_scale
+#' @param grid Which grid lines should appear? Horizontal only, both horizontal and vertical, or none (default).
 #' @param ... Other arguments passed on to \code{\link[ggplot2]{discrete_scale}()} or
 #' \code{\link[ggplot2]{continuous_scale}()}.
 #' @details There are 3 variants of the theme: no grid
@@ -12,7 +13,7 @@
 #' @export
 #' @examples
 #' 
-#' \donttest{
+#' \dontrun{
 #' library(ggplot2)
 #' 
 #' set.seed(123)
