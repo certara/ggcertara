@@ -44,6 +44,8 @@ run_colorexplorer <- function(plotobj=NULL) {
   if (!is.null(plotobj)) {
     .GlobalEnv$.colorexplorer_plotobj <- plotobj
     on.exit(rm(.colorexplorer_plotobj, envir=.GlobalEnv))
+  } else {
+    .GlobalEnv$.colorexplorer_plotobj <- NULL
   }
   shiny::runApp(appDir)
 }

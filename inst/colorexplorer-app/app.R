@@ -117,8 +117,8 @@ shinyApp(
         checkboxInput("colorblind", "Simulate color blindness"),
         wellPanel(
           sliderInput("plotwidth", "Plot width", value=1600, min=300, max=3000),
-          sliderInput("plotheight", "Plot height", value=850, min=300, max=3000),
-          sliderInput("plotres", "Plot resolution", value=200, min=50, max=500))),
+          sliderInput("plotheight", "Plot height", value=850, min=300, max=3000))),
+          #sliderInput("plotres", "Plot resolution", value=200, min=50, max=500))),
       mainPanel(
         plotOutput("plot", width="auto", height="auto"),
         sliderInput("ncol", "Number of colors", value=10, min=1, max=10, step=1, ticks=FALSE),
@@ -241,7 +241,7 @@ shinyApp(
     })
 
     #output$plot <- renderPlot(res=function() input$plotres, width=function() input$plotwidth, height=function() input$plotheight, {
-    output$plot <- renderPlot(res=200, width=function() input$plotwidth, height=function() input$plotheight, {
+    output$plot <- renderPlot(res=150, width=function() input$plotwidth, height=function() input$plotheight, {
 
       if (!is.null(values$plotobj)) {
         g <- values$plotobj +
@@ -252,7 +252,7 @@ shinyApp(
           if (!requireNamespace("colorblindr", quietly = TRUE)) {
             stop("This feature requires the 'colorblindr' package. Please install it from https://github.com/clauswilke/colorblindr.", call.=F)
           }
-          return(cvd_grid(g))
+          return(colorblindr::cvd_grid(g))
         } else {
           return(g)
         }
@@ -282,6 +282,7 @@ shinyApp(
         geom_point(size=2, alpha=0.3) +
         geom_smooth(method="lm", formula=y~x, size=0.8, se=FALSE) +
         scale_color_manual(values=palr()) +
+        scale_fill_manual(values=palr()) +
         #theme_bw(base_size=11, base_family="Arial Narrow") +
         theme_bw(base_size=11) +
         theme(
@@ -297,7 +298,7 @@ shinyApp(
         if (!requireNamespace("colorblindr", quietly = TRUE)) {
           stop("This feature requires the 'colorblindr' package. Please install it from https://github.com/clauswilke/colorblindr.", call.=F)
         }
-        return(cvd_grid(g1 + labs(x=NULL, y=NULL)))
+        return(colorblindr::cvd_grid(g1 + labs(x=NULL, y=NULL)))
       }
 
       g1 + g2 + patchwork::plot_layout(nrow=1, guides=NULL)
