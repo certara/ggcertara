@@ -2,6 +2,7 @@
 #'
 #' @inheritParams ggplot2::theme_grey
 #' @inheritParams ggplot2::continuous_scale
+#' @param grid Which grid lines should appear? Horizontal only, both horizontal and vertical, or none (default).
 #' @param ... Other arguments passed on to \code{\link[ggplot2]{discrete_scale}()} or
 #' \code{\link[ggplot2]{continuous_scale}()}.
 #' @details There are 3 variants of the theme: no grid
@@ -12,7 +13,7 @@
 #' @export
 #' @examples
 #' 
-#' \donttest{
+#' \dontrun{
 #' library(ggplot2)
 #' 
 #' set.seed(123)
@@ -43,23 +44,28 @@
 #' v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 #' v + scale_fill_certara_c()
 #'
-#' dat <- data.frame(x=1:8)
-#' p <- ggplot(dat) +
-#'     geom_col(aes(x=x, y=1, fill=factor(x)), color=NA) +
-#'     labs(fill="")
-#' p
-#' p + scale_fill_certara(palnum=2)
-#' p + scale_fill_certara(palnum=3)
-#' p + scale_fill_certara(palnum=4)
-#' p + scale_fill_certara(palnum=5)
+#' p <- function(n=8) {
+#'     dat <- data.frame(x=1:n)
+#'     ggplot(dat) + geom_col(aes(x=x, y=1, fill=factor(x)), color=NA, show.legend=F)
+#' }
+#' p(8) + scale_fill_certara()
+#' p(8) + scale_fill_certara(start=11)
+#' p(4) + scale_fill_certara(select=c(14, 19, 1, 5))
+#' p(8) + scale_fill_certara(start=9, discard=4)
+#' p(8) + scale_fill_certara(permute=c(2, 4, 1))
+#' p(8) + scale_fill_certara(permute=c(2, 4, 1), discard=3)
+#' p(30) + scale_fill_certara()
 #'
 #' }
 theme_certara <- function(base_size=11, base_family="",
-    base_line_size=base_size/22, base_rect_size=base_size/22) {
+    base_line_size=base_size/22, base_rect_size=base_size/22,
+    grid=c("none", "horizontal", "both")) {
+
+    grid <- match.arg(grid)
 
     half_line <- base_size/2
 
-    theme(
+    theme_c <- theme(
         line=element_line(
             colour="black",
             size=base_line_size, 
@@ -89,7 +95,7 @@ theme_certara <- function(base_size=11, base_family="",
         axis.line.y=NULL,
 
         axis.text=element_text(
-            size=rel(0.7), 
+            size=rel(0.9), 
             colour="grey40"),
         
         axis.text.x=element_text(
@@ -155,10 +161,16 @@ theme_certara <- function(base_size=11, base_family="",
         legend.key.height=NULL,
         legend.key.width=NULL,
         
-        legend.text=element_text(size=rel(1.0), margin=margin(r=2*half_line, unit="pt")),
+        legend.text=element_text(
+            size=rel(0.9),
+            margin=margin(r=2*half_line, unit="pt")),
+
         legend.text.align=NULL,
 
-        legend.title=element_text(hjust=0), 
+        legend.title=element_text(
+            size=rel(0.9),
+            hjust=0), 
+
         legend.title.align=NULL,
         
         legend.position="bottom", 
@@ -236,6 +248,18 @@ theme_certara <- function(base_size=11, base_family="",
         plot.margin=margin(half_line, half_line, half_line, half_line),
         
         complete=TRUE)
+
+    if (grid == "horizontal") {
+        theme_c <- theme_c %+replace% theme(
+            panel.grid.major.y=element_line(colour="grey90", size=0.3), 
+            panel.grid.minor.y=element_line(colour="grey90", size=0.3))
+    } else if (grid == "both") {
+        theme_c <- theme_c %+replace% theme(
+            panel.grid.major=element_line(colour="grey90", size=0.3), 
+            panel.grid.minor=element_line(colour="grey90", size=0.3))
+    }
+
+    theme_c
 }
 
 #' @rdname theme_certara
@@ -246,9 +270,8 @@ theme_certara_grid <- function(base_size=11, base_family="",
         base_size=base_size,
         base_family=base_family,
         base_line_size=base_line_size,
-        base_rect_size=base_rect_size) %+replace% theme(
-        panel.grid.major=element_line(colour="grey90", size=0.3), 
-        panel.grid.minor=element_line(colour="grey90", size=0.3))
+        base_rect_size=base_rect_size,
+        grid="both")
 }
 
 #' @rdname theme_certara
@@ -259,79 +282,82 @@ theme_certara_hgrid <- function(base_size=11, base_family="",
         base_size=base_size,
         base_family=base_family,
         base_line_size=base_line_size,
-        base_rect_size=base_rect_size) %+replace% theme(
-        panel.grid.major.y=element_line(colour="grey90", size=0.3), 
-        panel.grid.minor.y=element_line(colour="grey90", size=0.3))
+        base_rect_size=base_rect_size,
+        grid="horizontal")
 }
 
-#' Certara color palettes
+#' Certara color palette
 #'
-#' @param palnum Choose from 1 of 5 different color palettes with 8 colors each.
-#' @return A palette function, that returns a vector of hex codes for the
-#' colors in the palette when called with a single integer argument.
+#' @return A a vector of hex codes for the colors in the palette.
 #' @export
 #' @examples
-#' certara_pal(1)(8)
-certara_pal <- function(palnum=1) {
+#' certara_pal()
+certara_pal <- function() {
 
-    pal.list <- list(
+    c("#4682ac",  # blue
+      "#ee3124",  # red
+      "#fdbb2f",  # yellow-gold
+      "#6d405d",  # burgundy
+      "#093b6d",  # dark blue
+      "#2f71fd",  # bright blue
+      "#336343",  # dark green
+      "#803333",  # dark red
+      "#279594",  # teal
+      "#ef761b",  # orange
 
-        # Palette 1
-        c("#4682ac",  # blue
-          "#ee3124",  # red
-          "#fdbb2f",  # yellow-gold
-          "#6d405d",  # burgundy?
-          "#093b6d",  # dark blue
-          "#2f71fd",  # bright blue
-          "#336343",  # dark green
-          "#52ccbb"), # mint
+      "#29398c",  # dark blue
+      "#32a17e",  # sort of green
+      "#d89a17",  # darkish yellow
+      "#d64d20",  # reddish orange
+      "#9da1bd",  # silver
+      "#9c8777",  # beige
+      "#7059a6",  # purple
+      "#e07070",  # pink
+      "#475c6b",  # charcoal
+      "#75604D",  # brown
 
-        # Palette 2
-        c("#093b6d",  # dark blue
-          "#32a17e",  # sort of green
-          "#d89a17",  # darkish yellow
-          "#9c8777",  # beige?
-          "#5cc8f7",  # light blue
-          "#d64d20",  # reddish orange
-          "#7059a6",  # purple
-          "#336343"), # dark green
+      "#067f97",  # dark cyan
+      "#b7a148",  # yellow-green
+      "#f98068",  # salmon
+      "#72cbed",  # light blue
+      "#b8a394",  # beige
+      "#b35d1b",  # dark orange
+      "#a52f43",  # dark red
+      "#113df2",  # bright blue
+      "#f2c611",  # yellow
+      "#52ccbb")  # mint
+}
 
-        # Palette 3
-        c("#067f97",  # dark cyan
-          "#b7a148",  # yellow-green
-          "#7059a6",  # purple
-          "#f98068",  # salmon
-          "#b8a394",  # beige
-          "#72cbed",  # light blue
-          "#29398c",  # dark blue
-          "#475c6b"), # charcoal
-
-        # Palette 4
-        c("#279594",  # teal
-          "#e07070",  # pink
-          "#5cc8f7",  # light blue
-          "#ef761b",  # orange
-          "#113df2",  # bright blue
-          "#f2c611",  # yellow
-          "#52ccbb",  # mint
-          "#a52f43"), # dark red
-
-        # Palette 5
-        c("#29398C",  # dark blue
-          "#336343",  # dark green
-          "#803333",  # dark red
-          "#B35D1B",  # dark orange
-          "#067F97",  # dark cyan
-          "#B7A148",  # dark yellow
-          "#7059A6",  # purple
-          "#75604D")  # brown
-
-    )
-
-    cols <- unlist(pal.list[((1:length(pal.list) + (palnum - 2)) %% length(pal.list)) + 1])
-
-    function(n=8) {
-        if (n == 0) {
+certara_palfn <- function(start=1, select=NULL, permute=NULL, discard=NULL) {
+    cols <- certara_pal()
+    if (!(start %in% 1:length(cols))) {
+        stop(paste0("start must be between 1 and ", length(cols)))
+    }
+    if (start > 1) {
+        cols <- c(cols[start:length(cols)], cols[1:(start - 1)])  # Rotate
+    }
+    if (!is.null(select)) {
+        if (!(all(select %in% 1:length(cols)))) {
+            stop(paste0("All of select must be between 1 and ", length(cols)))
+        }
+        cols <- cols[select]
+    }
+    if (!is.null(permute)) {
+        if (!(all(permute %in% 1:length(cols)))) {
+            stop(paste0("All of permute must be between 1 and ", length(cols)))
+        }
+        cols1 <- cols[permute]
+        cols2 <- cols[setdiff(1:length(cols), permute)]
+        cols <- c(cols1, cols2)
+    }
+    if (!is.null(discard)) {
+        if (!(all(discard %in% 1:length(cols)))) {
+            stop(paste0("All of discard must be between 1 and ", length(cols)))
+        }
+        cols <- cols[-discard]
+    }
+    palfn <- function(n=8) {
+        if (n <= 0) {
             stop("Must request at least one color.")
         }
         rep(cols, length.out=n) # Recycle colors
@@ -344,7 +370,7 @@ scale_colour_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="colour",
         scale_name="certara",
-        palette=certara_pal(...))
+        palette=certara_palfn(...))
 }
 
 #' @rdname theme_certara
@@ -357,7 +383,7 @@ scale_fill_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="fill",
         scale_name="certara",
-        palette=certara_pal(...))
+        palette=certara_palfn(...))
 }
 
 #' @rdname theme_certara
@@ -366,7 +392,7 @@ scale_colour_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="colour",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(1)(3)),
+        palette=scales::gradient_n_pal(certara_pal()[1:3]),
         guide=guide)
 }
 
@@ -376,7 +402,7 @@ scale_fill_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="fill",
         scale_name="certara_c",
-        palette=scales::gradient_n_pal(certara_pal(1)(3)),
+        palette=scales::gradient_n_pal(certara_pal()[1:3]),
         guide=guide)
 }
 

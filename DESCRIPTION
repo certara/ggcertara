@@ -1,7 +1,7 @@
 Package: ggcertara
 Type: Package
-Version: 0.3
-Date: 2020-06-09
+Version: 0.4
+Date: 2020-11-17
 Title: A ggplot2 theme for Certara CSC-iDD
 Authors@R: c(
     person("Benjamin", "Rich", role=c("aut", "cre"), email="benjamin.rich@certara.com"),
@@ -19,8 +19,13 @@ Imports:
     rlang,
     purrr,
     patchwork (>= 1.0.0)
-Suggests: knitr,kableExtra
+Suggests:
+    knitr,
+    kableExtra,
+    shiny,
+    colourpicker,
+    colorblindr
 VignetteBuilder: knitr
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1

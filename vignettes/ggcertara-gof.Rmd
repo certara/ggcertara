@@ -435,7 +435,7 @@ As another example, we can add a blue linear regression line in addition to the 
 
 ```{r message=F,fig.width=6, fig.height=3, out.width="60%"}
 gof(dat, panels=8:9) &
-  geom_smooth(method="lm", color=certara_pal()()[1], se=F, size=1)
+  geom_smooth(method="lm", color=certara_pal()[1], se=F, size=1)
 ```
 
 # R session information

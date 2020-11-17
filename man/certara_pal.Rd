@@ -2,20 +2,16 @@
 % Please edit documentation in R/theme_certara.R
 \name{certara_pal}
 \alias{certara_pal}
-\title{Certara color palettes}
+\title{Certara color palette}
 \usage{
-certara_pal(palnum = 1)
-}
-\arguments{
-\item{palnum}{Choose from 1 of 5 different color palettes with 8 colors each.}
+certara_pal()
 }
 \value{
-A palette function, that returns a vector of hex codes for the
-colors in the palette when called with a single integer argument.
+A a vector of hex codes for the colors in the palette.
 }
 \description{
-Certara color palettes
+Certara color palette
 }
 \examples{
-certara_pal(1)(8)
+certara_pal()
 }

@@ -17,7 +17,7 @@ gof_list(
   ...
 )
 
-gof_layout(p, nrow = NULL, ncol = min(length(p), 3), byrow = TRUE, ...)
+gof_layout(p, nrow = NULL, ncol = NULL, byrow = TRUE, ...)
 
 gof(
   data = NULL,
