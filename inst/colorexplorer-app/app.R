@@ -50,7 +50,7 @@ c("#067f97",  # dark cyan
 
 palall <- c(
 
-# Reds, oranges & yellow
+  # Reds, oranges & yellow
 
   "#803333",  # dark red
   "#a52f43",  # dark red

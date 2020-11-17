@@ -15,7 +15,8 @@ theme_certara(
   base_size = 11,
   base_family = "",
   base_line_size = base_size/22,
-  base_rect_size = base_size/22
+  base_rect_size = base_size/22,
+  grid = c("none", "horizontal", "both")
 )
 
 theme_certara_grid(
@@ -101,15 +102,17 @@ p + scale_y_log10() + annotation_logticks(sides="l") + theme_certara_grid()
 v <- ggplot(faithfuld) + geom_tile(aes(waiting, eruptions, fill=density))
 v + scale_fill_certara_c()
 
-dat <- data.frame(x=1:8)
-p <- ggplot(dat) +
-    geom_col(aes(x=x, y=1, fill=factor(x)), color=NA) +
-    labs(fill="")
-p
-p + scale_fill_certara(palnum=2)
-p + scale_fill_certara(palnum=3)
-p + scale_fill_certara(palnum=4)
-p + scale_fill_certara(palnum=5)
+p <- function(n=8) {
+    dat <- data.frame(x=1:n)
+    ggplot(dat) + geom_col(aes(x=x, y=1, fill=factor(x)), color=NA, show.legend=F)
+}
+p(8) + scale_fill_certara()
+p(8) + scale_fill_certara(start=11)
+p(4) + scale_fill_certara(select=c(14, 19, 1, 5))
+p(8) + scale_fill_certara(start=9, discard=4)
+p(8) + scale_fill_certara(permute=c(2, 4, 1))
+p(8) + scale_fill_certara(permute=c(2, 4, 1), discard=3)
+p(30) + scale_fill_certara()
 
 }
 }
