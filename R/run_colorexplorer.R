@@ -14,7 +14,7 @@
 #' }
 #' Make sure they are installed or the app won't work.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(ggplot2)
 #' 
 #' g <- ggplot(mpg, aes(class, fill=class)) + geom_bar()
