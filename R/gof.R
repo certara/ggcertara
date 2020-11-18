@@ -90,8 +90,18 @@ get_label <- function(x, labels=gof_labels()) {
             warning(sprintf("%s should be length 1, using first element", op))
             unit <- unit[[1]]
           }
-          if (!is.na(unit) && unit != "") {
-            xlb <- sprintf("%s (%s)", xlb, unit)
+          if (is.expression(unit) || (!is.na(unit) && unit != "")) {
+            if (is.expression(xlb) || is.expression(unit)) {
+              if (!is.expression(unit)) {
+                unit <- paste0("\"", unit, "\"")
+              }
+              if (!is.expression(xlb)) {
+                xlb <- paste0("\"", xlb, "\"")
+              }
+              xlb <- parse(text=paste0(xlb, "~(", unit, ")"))
+            } else {
+              xlb <- sprintf("%s (%s)", xlb, unit)
+            }
           }
         }
       }
