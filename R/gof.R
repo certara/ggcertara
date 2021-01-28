@@ -267,8 +267,11 @@ StatLoessC <- ggproto("StatLoessC", Stat,
       fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
       data.frame(x=fit$x, y=fit$y)
     }, warning=function(e) {
-      warning("Unable to compute LOESS smooth.")
-      data.frame(x=numeric(0), y=numeric(0))
+      warning("Warnings occurred in LOESS computation. Usually OK to ignore.", call.=FALSE)
+      suppressWarnings({
+        fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
+        data.frame(x=fit$x, y=fit$y)
+      })
     }, error=function(e) {
       warning("Unable to compute LOESS smooth.")
       data.frame(x=numeric(0), y=numeric(0))
