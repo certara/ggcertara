@@ -1,411 +1,9 @@
 #' @import ggplot2
 #' @import patchwork
 #' @importFrom rlang .data
+#' @importFrom dplyr filter %>%
 NULL
 
-#' Default labels
-default.labels <- list(
-  dv    = "Observed Value",
-  pred  = "Population Prediction",
-  ipred = "Individual Prediction",
-  cwres = "Conditional Weighted Residual",
-  iwres = "Individual Weighted Residual",
-  time  = "Time",
-  tad   = "Time After Dose"
-)
-
-.onLoad <- function(libname, pkgname) {
-  op <- list(
-    gof.label.dv    = default.labels$dv,
-    gof.label.pred  = default.labels$pred,
-    gof.label.ipred = default.labels$ipred,
-    gof.label.cwres = default.labels$cwres,
-    gof.label.iwres = default.labels$iwres,
-    gof.label.time  = default.labels$time,
-    gof.label.tad   = default.labels$tad,
-    gof.units.dv    = NA,
-    gof.units.time  = NA,
-    gof.units.tad   = NA,
-    gof.scale.dv    = "linear",
-    gof.scale.time  = "linear",
-    gof.scale.tad   = "linear"
-  )
-  toset <- !(names(op) %in% names(options()))
-  if (any(toset)) options(op[toset])
-  invisible()
-}
-
-#' Labels for GOF plots
-#'
-#' @param ... Named character arguments will override the defaults.
-#'
-#' @details This function can be used to get and set the axis labels for GOF
-#' plots.  The default labels are taken from \code{\link{options}} that start
-#' with the prefix \code{gof.label.}, for example \code{gof.label.dv},
-#' \code{gof.label.ipred} and so on.  This function extracts those options into
-#' a named list (without the prefix), and allows any number of them to be
-#' overridden.
-#'
-#' @return A named list.
-#'
-#' @examples
-#' gof_labels()
-#'
-#' # Override a label
-#' gof_labels(tad="Time After Start of Infusion")
-#'
-#' \dontrun{
-#' # Change the default
-#' options(gof.label.tad="Time After Start of Infusion")
-#' gof_labels()
-#' }
-#' @export
-gof_labels <- function(...) {
-  l <- options()[grepl("^gof\\.label\\.", names(options()))]
-  names(l) <- sub("^gof\\.label\\.", "", names(l))
-  args <- list(...)
-  l[names(args)] <- args
-  l
-}
-
-# This is an internal function that constructs labels for plots.  If it
-# recognizes certain variable names, it will add units from global options.
-get_label <- function(x, labels=gof_labels()) {
-  x <- rlang::enquo(x)
-  xlb <- tryCatch(rlang::eval_tidy(x, data=labels), error=function(e) NULL)
-  if (!is.null(xlb)) {
-    xnm <- tryCatch(rlang::as_label(x), error=function(e) NULL)
-    if (!is.null(xnm)) {
-      op <- switch(xnm,
-        dv    = "gof.units.dv",
-        pred  = "gof.units.dv",
-        ipred = "gof.units.dv",
-        time  = "gof.units.time",
-        tad   = "gof.units.tad",
-        NULL)
-      if (!is.null(op)) {
-        unit <- getOption(op)
-        if (!is.null(unit) && length(unit) > 0) {
-          if (length(unit) > 1) {
-            warning(sprintf("%s should be length 1, using first element", op))
-            unit <- unit[[1]]
-          }
-          if (is.expression(unit) || (!is.na(unit) && unit != "")) {
-            if (is.expression(xlb) || is.expression(unit)) {
-              if (!is.expression(unit)) {
-                unit <- paste0("\"", unit, "\"")
-              }
-              if (!is.expression(xlb)) {
-                xlb <- paste0("\"", xlb, "\"")
-              }
-              xlb <- parse(text=paste0(xlb, "~(", unit, ")"))
-            } else {
-              xlb <- sprintf("%s (%s)", xlb, unit)
-            }
-          }
-        }
-      }
-    }
-  } else {
-    xlb <- tryCatch(rlang::as_label(x), error=function(e) NULL)
-  }
-  xlb
-}
-
-
-#' Customized geoms
-#' @name certara_geom
-NULL
-
-#' @rdname certara_geom
-#' @inheritParams ggplot2::geom_point
-#' @export
-geom_point_c <- function(mapping = NULL, data = NULL,
-                        stat = "identity", position = "identity",
-                        ...,
-                        na.rm = FALSE,
-                        show.legend = NA,
-                        inherit.aes = TRUE) {
-  ggplot2::layer(
-    data = data,
-    mapping = mapping,
-    stat = stat,
-    geom = GeomPointC,
-    position = position,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    params = list(
-      na.rm = na.rm,
-      ...
-    )
-  )
-}
-
-#' @rdname certara_geom
-#' @format NULL
-#' @usage NULL
-#' @export
-GeomPointC <- ggproto("GeomPointC", GeomPoint,
-  default_aes = aes(
-    shape = 19, colour = "#9DA1BD", size = 1.5, fill = NA,
-    alpha = 0.4, stroke = 0
-  )
-)
-
-#' @rdname certara_geom
-#' @inheritParams ggplot2::geom_line
-#' @export
-geom_fitline_c <- function(mapping = NULL, data = NULL, stat = "identity",
-                      position = "identity", na.rm = FALSE, orientation = NA,
-                      show.legend = NA, inherit.aes = TRUE, ...) {
-  layer(
-    data = data,
-    mapping = mapping,
-    stat = stat,
-    geom = GeomFitlineC,
-    position = position,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    params = list(
-      na.rm = na.rm,
-      orientation = orientation,
-      ...
-    )
-  )
-}
-
-#' @rdname certara_geom
-#' @format NULL
-#' @usage NULL
-#' @export
-GeomFitlineC <- ggproto("GeomFitlineC", GeomLine,
-
-  required_aes = c("x", "y"),
-
-  default_aes = aes(
-    fitcolour = "#ee3124", fitsize = 1,
-    fitalpha = NA, fitlinetype = 1
-    ),
-
-  handle_na = function(self, data, params) {
-    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
-    nm <- names(data2)
-    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
-    nm <- ifelse(nm=="fitcolor",    "color",    nm)
-    nm <- ifelse(nm=="fitsize",     "size",     nm)
-    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
-    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
-    names(data2) <- nm
-    data3 <- self$super()$handle_na(data=data2, params=params)
-    nm <- names(data3)
-    nm <- ifelse(nm=="colour",   "fitcolour",   nm)
-    nm <- ifelse(nm=="color",    "fitcolor",    nm)
-    nm <- ifelse(nm=="size",     "fitsize",     nm)
-    nm <- ifelse(nm=="alpha",    "fitalpha",    nm)
-    nm <- ifelse(nm=="linetype", "fitlinetype", nm)
-    names(data3) <- nm
-    data3
-  },
-
-  draw_panel = function(self, data, ...) {
-    data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
-    nm <- names(data2)
-    nm <- ifelse(nm=="fitcolour",   "colour",   nm)
-    nm <- ifelse(nm=="fitcolor",    "color",    nm)
-    nm <- ifelse(nm=="fitsize",     "size",     nm)
-    nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
-    nm <- ifelse(nm=="fitlinetype", "linetype", nm)
-    names(data2) <- nm
-    self$super()$draw_panel(data=data2, ...)
-  }
-)
-
-#' @rdname certara_geom
-#' @param geom Which underlying \code{geom} to use to do the actual rendering.
-#' @inheritParams stats::scatter.smooth
-#' @export
-geom_loess_c <- function(mapping = NULL, data = NULL,
-                       geom = "fitline_c", position = "identity",
-                       ...,
-                       span = 2/3,
-                       degree = 1,
-                       family = "symmetric",
-                       na.rm = FALSE,
-                       show.legend = NA,
-                       inherit.aes = TRUE) {
-  ggplot2::layer(
-    data = data,
-    mapping = mapping,
-    stat = StatLoessC,
-    geom = geom,
-    position = position,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    params = list(
-      span = span, 
-      degree = degree,
-      family = family,
-      na.rm = na.rm,
-      ...
-    )
-  )
-}
-
-#' @rdname certara_geom
-#' @export
-stat_loess_c <- geom_loess_c
-
-#' @rdname certara_geom
-#' @format NULL
-#' @usage NULL
-#' @export
-StatLoessC <- ggproto("StatLoessC", Stat,
-  required_aes = c("x", "y"),
-
-  compute_group = function(data, scales, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
-    tryCatch({
-      fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
-      data.frame(x=fit$x, y=fit$y)
-    }, warning=function(e) {
-      warning("Warnings occurred in LOESS computation. Usually OK to ignore.", call.=FALSE)
-      suppressWarnings({
-        fit <- loess.smooth(data$x, data$y, span=span, degree=degree, family=family)
-        data.frame(x=fit$x, y=fit$y)
-      })
-    }, error=function(e) {
-      warning("Unable to compute LOESS smooth.")
-      data.frame(x=numeric(0), y=numeric(0))
-    })
-  }
-)
-
-#' A coordinate system that is symmetric about \eqn{x=0}.
-#'
-#' This is a Cartesian coordinate system that is centered vertically at \eqn{x=0}.
-#' @inheritParams ggplot2::coord_cartesian
-#' @export
-coord_symm_x <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
-  ggproto(NULL, CoordSymmX,
-    limits = list(x = xlim, y = ylim),
-    expand = expand,
-    clip = clip
-  )
-}
-
-#' @rdname coord_symm_x
-#' @format NULL
-#' @usage NULL
-#' @export
-CoordSymmX <- ggproto("CoordSymmX", CoordCartesian,
-  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
-    scale_x$range$range <- c(-1, 1)*max(abs(scale_x$range$range))
-    parent <- ggproto_parent(CoordCartesian, self)
-    parent$setup_panel_params(scale_x, scale_y, params)
-  }
-)
-
-#' A coordinate system that is symmetric about \eqn{y=0}.
-#'
-#' This is a Cartesian coordinate system that is centered vertically at \eqn{y=0}.
-#' @inheritParams ggplot2::coord_cartesian
-#' @export
-coord_symm_y <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
-  ggproto(NULL, CoordSymmY,
-    limits = list(x = xlim, y = ylim),
-    expand = expand,
-    clip = clip
-  )
-}
-
-#' @rdname coord_symm_y
-#' @format NULL
-#' @usage NULL
-#' @export
-CoordSymmY <- ggproto("CoordSymmY", CoordCartesian,
-  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
-    scale_y$range$range <- c(-1, 1)*max(abs(scale_y$range$range))
-    parent <- ggproto_parent(CoordCartesian, self)
-    parent$setup_panel_params(scale_x, scale_y, params)
-  }
-)
-
-#' A coordinate system that is symmetric about \eqn{y=x}.
-#'
-#' This is a Cartesian coordinate system that has the same limits in both \eqn{x} and \eqn{y}.
-#' @inheritParams ggplot2::coord_cartesian
-#' @export
-coord_symm_xy <- function(xlim = NULL, ylim = NULL, expand = TRUE, clip = "on") {
-  ggproto(NULL, CoordSymmXY,
-    limits = list(x = xlim, y = ylim),
-    expand = expand,
-    clip = clip
-  )
-}
-
-#' @rdname coord_symm_xy
-#' @format NULL
-#' @usage NULL
-#' @export
-CoordSymmXY <- ggproto("CoordSymmXY", CoordCartesian,
-  setup_panel_params = function(self, scale_x, scale_y, params = list()) {
-    lim_xy <- c(
-      min(scale_x$range$range[1], scale_y$range$range[1]),
-      max(scale_x$range$range[2], scale_y$range$range[2]))
-    scale_x$range$range <- lim_xy
-    scale_y$range$range <- lim_xy
-    parent <- ggproto_parent(CoordCartesian, self)
-    parent$setup_panel_params(scale_x, scale_y, params)
-  }
-)
-
-#' Use log scales
-#'
-#' @param g A \code{ggplot2} object.
-#' @param limits Limits to use for the scale. See \code{\link[ggplot2]{scale_x_continuous}}.
-#' @return A \code{ggplot2} object with log scales in \eqn{x}, \eqn{y} or both.
-#' @name logscales
-NULL
-
-#' @rdname logscales
-#' @export
-log_x <- function(g, limits=NULL) {
-  .x <- NULL
-  g + scale_x_log10(
-    breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x)),
-    limits = limits
-  ) +
-  annotation_logticks(sides="b")
-}
-
-#' @rdname logscales
-#' @export
-log_y <- function(g, limits=NULL) {
-  .x <- NULL
-  g + scale_y_log10(
-    breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x)),
-    limits = limits
-  ) +
-  annotation_logticks(sides="l")
-}
-
-#' @rdname logscales
-#' @export
-log_xy <- function(g, limits=NULL) {
-  .x <- NULL
-  g + scale_x_log10(
-    breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x)),
-    limits = limits
-    ) +
-  scale_y_log10(
-    breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x)),
-    limits = limits
-    ) +
-  annotation_logticks(sides="bl", size=0.3)
-}
 
 #' Read gof data
 #'
@@ -718,7 +316,7 @@ gof_cwres_qqplot <- function(data, labels=gof_labels()) {
 #'
 #' @param ... Ignored.
 #'
-#' @details 
+#' @details
 #' The default output of \code{\link{gof}} is consists of 6 panels arranged in
 #' a 3-by-2 grid. These are:
 #'
@@ -736,7 +334,7 @@ gof_cwres_qqplot <- function(data, labels=gof_labels()) {
 #' variants to be the default for certain panels. This can be achieved using
 #' \code{\link{options}} \code{gof.scale.*} (see Examples).
 #'
-#' @return A vector of panel numbers. 
+#' @return A vector of panel numbers.
 #'
 #' @examples
 #' gof_default_panels()
@@ -909,335 +507,796 @@ gof <- function(data=NULL,
   }
 }
 
-# vim: ts=2 sw=2 et
 
-#' A generic function for individual plots
-#' Observations, individual predictions and population predictions plotted against 
-#' the independent variable for each individual
+#' A generic function for individual plots.
 #'
-#' @description Observations (DV), individual predictions (IPRED) and population predictions 
-#' (PRED) plotted against the independent variable for each individual.
-#' 
+#' Observations (DV), individual predictions (IPRED) and population predictions (PRED) plotted against the independent variable for each individual.
+#'
 #' @param data A \code{data.frame}.
 #' @param labels A named \code{list} of labels.
-#' @param x Changes independent variable. Value is time by default 
-#' @param y Changes dependent variable. Value is dv by default 
-#' @param ipred Changes individual prediction variable. Value is ipred by default 
-#' @param pred Changes population prediction variable. Value is pred by default 
-#' @param color_color Changes color. Should be a vector of 4 values 
-#' (i.e. dv, ipred, pred, outliers). By default, color_color = c('dv'=certara_pal()[1],'outliers'=certara_pal()[2],'ipred'= certara_pal()[3],'pred'= certara_pal()[4]).
-#' @param shape_shape Changes shape. Should be a vector of 4 values 
-#' (i.e. dv, ipred, pred, outliers). By default, shape_shape = c('dv'=16,'outliers'=10,'ipred'=NA,'pred'=NA).
-#' @param fill_fill Changes fill color for ipred when plotting with uncertainty option set to TRIE. By default, set to certara_pal()[3].
+#' @param x Changes independent variable. Value is time by default
+#' @param y Changes dependent variable. Value is dv by default
+#' @param ipred Changes individual prediction variable. Value is ipred by default
+#' @param pred Changes population prediction variable. Value is pred by default
+#' @param color_color Changes color. Should be a vector of 4 values (i.e. dv, ipred, pred, outliers).
+#' @param shape_shape Changes shape.
+#' @param fill_fill Changes fill color for ipred when plotting with uncertainty option set to TRIE.
 #' @param alpha_fill Transparency parameter for the area plotted to represent confidence interval.
-#' @param line_linetype Changes linetype. Should be a vector of 4 values 
-#' (i.e. dv, ipred, pred, outliers). By default, line_linetype = c('dv'='blank','outliers'='blank', 'ipred'='solid','pred'= 'dashed').
+#' @param line_linetype Changes linetype.
 #' @param line_size Size parameter for the line layer.
 #' @param shape_size Size parameter for the shape layer.
 #' @param strati1 Variable used to stratify the plots. Value is id by default.
 #' @param strati2 Variable used to possibly add an additional layer of stratification to the plots. Value is NULL by default.
 #' @param ip_ncol Variable used to define numbers of columns per plot. Value is 4 by default. Works in combination with ip_nrow.
-#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow 
+#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow
 #' @param ip_nrow Variable used to define numbers of rows per plot. Value is 4 by default. Works in combination with ip_ncol.
-#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow 
+#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow
 #' @param cwres.outliers If \code{TRUE} then only profiles of individuals with outliers observations will be displayed. Value is FALSE by default.
 #' @param limit.outliers Value to be used for CWRES to identify outliers. Value is 5 by default.
 #' @param uncertainty If \code{TRUE} then  confidence interval (95% by default) around individual predictions are plotted with observations.
-#' @param uncert.ci Value used to define the confidence interval when having the uncertinaty flag set to TRUE () 0.95 by default.
+#' @param uncert.ci Value used to define the confidence interval when having the uncertainty flag set to TRUE () 0.95 by default.
+#'
 #' @examples
-#' # Basic example
-#' \dontrun{indiv_plot( data        = dat,
-#'            			strati1     = id,
-#'			          	x           = time,
-#'			  			y           = dv,
-#'			  			ipred       = ipred,
-#'			  			pred        = pred,
-#'			  			ip_nrow     = 4, 
-#'			  			ip_ncol     = 3,
-#'			  			uncertainty = FALSE)
+#' #Examples
+#' \dontrun{
+#' indiv_plot(data = dat,
+#'            strati1 = id,
+#'            x = time,
+#'            y = dv,
+#'            ipred = ipred,
+#'            pred = pred,
+#'            ip_nrow = 4,
+#'            ip_ncol = 3,
+#'            uncertainty = FALSE)
 #' }
-#' # Example with individuals with high cwres values 
-#' \dontrun{indiv_plot( data           = dat,
-#'            			strati1        = id,
-#'			          	x              = time,
-#'			  			y              = dv,
-#'			  			ipred          = ipred,
-#'			  			pred           = pred,
-#'			  			ip_nrow        = 4, 
-#'			  			ip_ncol        = 3,
-#'						cwres.outliers = TRUE,
-#'						limit.outliers = 5,
-#'			  			uncertainty    = FALSE)
+#'
+#' # Example with individuals with high cwres values
+#' \dontrun{
+#' indiv_plot(data = dat,
+#'            strati1 = id,
+#'            x = time,
+#'            y = dv,
+#'            ipred = ipred,
+#'            pred = pred,
+#'            ip_nrow = 4,
+#'            ip_ncol = 3,
+#'            cwres.outliers = TRUE,
+#'            limit.outliers = 5,
+#'            uncertainty = FALSE)
 #' }
+#'
 #' # Example to apply layers with the ampersand sign & (example to change legend.position)
-#' \dontrun{indiv_plot( data        = dat,
-#'						strati1     = id,
-#'			  			x           = time,
-#'			  			y           = dv,
-#'			  			ipred       = ipred,
-#'			  			pred        = pred) & theme(legend.position="bottom")	
+#' \dontrun{
+#' indiv_plot(data = dat,
+#'            strati1 = id,
+#'            x = time,
+#'            y = dv,
+#'            ipred = ipred,
+#'            pred = pred) &
+#' theme(legend.position = "bottom")
 #' }
 #' @export
+#'
+indiv_plot <- function(data,
+                       x,
+                       y,
+                       ipred,
+                       pred,
+                       labels = gof_labels(),
+                       ip_ncol = 4,
+                       ip_nrow = 4,
+                       scale_facet = 'fixed',
+                       labelfacet = "label_value",
+                       strati1 = id,
+                       strati2 = NULL,
+                       color_color = c(
+                         'dv' = ggcertara::certara_pal()[1],
+                         'outliers' = ggcertara::certara_pal()[2],
+                         'ipred' = ggcertara::certara_pal()[4],
+                         'pred' = ggcertara::certara_pal()[7]
+                       ),
+                       fill_fill = c('ipred' = ggcertara::certara_pal()[4]),
+                       alpha_fill = 0.5,
+                       line_linetype = c(
+                         'dv' = 'blank',
+                         'outliers' = 'blank',
+                         'ipred' = 'solid',
+                         'pred' = 'dashed'
+                       ),
+                       line_size = 1,
+                       shape_shape = c(
+                         'dv' = 16,
+                         'outliers' = 10,
+                         'ipred' = NA,
+                         'pred' = NA
+                       ),
+                       shape_size = 1,
+                       cwres.outliers = FALSE,
+                       limit.outliers = 5,
+                       uncertainty = FALSE,
+                       uncert.ci = 0.95,
+                       ...) {
+  strati1 <- enquo(strati1)
+  strati2 <- enquo(strati2)
+  x <- rlang::enquo(x)
+  y <- rlang::enquo(y)
 
 
-## utils function #1
-fwp = function(g, ncol = ip_ncol, nrow = ip_nrow, npg=ip_npage, strat1=NULL, strat2=NULL,scale_facet2=scale_facet,labelfacet2=labelfacet) { 
-  l = list()
-  
-    
-  for (i in 1:(npg)) {
-    
-    l[[length(l)+1]] = g + ggforce::facet_wrap_paginate(vars(!!strat1,!!strat2), ncol = ncol, nrow = nrow, page = i, scales = scale_facet2, labeller = labelfacet2) + ggplot2::labs(caption=paste0("Page ",i," out of ",npg))
-   
+  filt_y <- deparse(substitute(y))
+  filt_ipred <- deparse(substitute(ipred))
+  filt_pred <- deparse(substitute(pred))
+
+  xlb <- get_label(!!x, labels)
+  ylb <- get_label(!!y, labels)
+
+  if (cwres.outliers == TRUE & uncertainty == TRUE)
+    stop('Both cwres.outliers and uncertainty arguments cannot be TRUE simultaneously')
+
+  if (uncert.ci >= 1)
+    stop('uncert.ci cannot be greater or equal to 1')
+
+  # Rest of the code for different cases
+  # ...
+
+  if (cwres.outliers == FALSE & uncertainty == FALSE) {
+    data2    <- data %>%
+      tidyr::pivot_longer(cols = c({
+        {
+          y
+        }
+      }, {
+        {
+          pred
+        }
+      }, {
+        {
+          ipred
+        }
+      }),
+      names_to = "variable",
+      values_to = "value")
+
+    ip_npage <- ceiling(
+      data %>%
+        dplyr::group_by({
+          {
+            strati1
+          }
+        }) %>%
+        dplyr::slice(1) %>%
+        dplyr::ungroup() %>%
+        nrow() / (ip_ncol * ip_nrow)
+    )
+
+    remainder_id <- data %>%
+      dplyr::group_by({
+        {
+          strati1
+        }
+      }) %>%
+      dplyr::slice(1) %>%
+      dplyr::ungroup() %>%
+      nrow() %% (ip_ncol * ip_nrow)
+
+    if (remainder_id < ip_ncol &
+        remainder_id > 0)
+      print(
+        'Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow'
+      )
+
+
+    g1 <- ggplot2::ggplot(data2) +
+      ggplot2::aes(x = {{x}}, y = value) +
+
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable ==  filt_y),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'dv',
+          colour = 'dv'
+        ),
+        size = shape_size,
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable ==  filt_ipred),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'ipred',
+          colour = 'ipred'
+        ),
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable ==  filt_pred),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'pred',
+          colour = 'pred'
+        ),
+        show.legend = TRUE
+      ) +
+
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable ==  filt_y),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'dv',
+          colour = 'dv'
+        ),
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable ==  filt_ipred),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'ipred',
+          colour = 'ipred'
+        ),
+        size = line_size,
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable ==  filt_pred),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'pred',
+          colour = 'pred'
+        ),
+        size = line_size,
+        show.legend = TRUE
+      ) +
+      ggplot2::scale_linetype_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV'
+        ),
+        limits = c("dv", 'ipred', 'pred'),
+        values = line_linetype
+      ) +
+      ggplot2::scale_shape_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV'
+        ),
+        limits = c("dv", 'ipred', 'pred'),
+        values = shape_shape
+      ) +
+      ggplot2::scale_color_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV'
+        ),
+        limits = c("dv", 'ipred', 'pred'),
+        values = color_color
+      ) +
+
+      ggcertara::theme_certara(base_size = 11) +
+      ggplot2::theme(aspect.ratio = 1) +
+      ggplot2::theme(
+        legend.direction = "vertical",
+        legend.position = "right",
+        legend.title = element_blank()
+      ) +
+      ggplot2::labs(
+        x = xlb,
+        y = ylb,
+        title = 'Individual plot title',
+        subtitle = 'Individual plot subtitle'
+      )
+
+
+
+    g = fwp(
+      g1,
+      ncol = ip_ncol,
+      nrow = ip_nrow,
+      npg = ip_npage,
+      strat1 = strati1,
+      strat2 = strati2,
+      scale_facet2 = scale_facet,
+      labelfacet2 = labelfacet
+    )
+
+    print(g)
+    return(g)
+
+
+  }
+
+
+
+  if (cwres.outliers == TRUE & uncertainty == FALSE) {
+    if (is.null(data$cwres)) {
+      stop("No CWRES variable found.")
     }
- 
-  structure(l, class=c("gg",'fwp'))
+
+    datcwres <-
+      data %>% dplyr::filter(abs(cwres) > limit.outliers) %>%
+      dplyr::select({
+        {
+          strati1
+        }
+      }) %>%
+      dplyr::pull() %>% unique()
+
+
+    data2 <- data %>%
+      tidyr::pivot_longer(cols = c({
+        {
+          y
+        }
+      }, {
+        {
+          pred
+        }
+      }, {
+        {
+          ipred
+        }
+      }),
+      names_to = "variable",
+      values_to = "value")
+
+
+    ip_npage <- ceiling(
+      data %>% dplyr::group_by({
+        {
+          strati1
+        }
+      }) %>%
+        dplyr::slice(1) %>%
+        dplyr::ungroup() %>% nrow() / (ip_ncol *  ip_nrow)
+    )
+
+    remainder_id <- data %>%  dplyr::group_by({
+      {
+        strati1
+      }
+    }) %>%
+      dplyr::slice(1) %>%
+      dplyr::ungroup() %>% nrow() %% (ip_ncol *  ip_nrow)
+
+    if (remainder_id < ip_ncol &
+        remainder_id > 0)
+      print(
+        'Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow'
+      )
+
+
+
+    g1 <- ggplot2::ggplot(data2) +
+      ggplot2::aes(x = {
+        {
+          x
+        }
+      }, y = value) +
+
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable == filt_y &
+                                         abs(cwres) < limit.outliers),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'dv',
+          colour = 'dv'
+        ),
+        size = shape_size,
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable == filt_y &
+                                         abs(cwres) >= limit.outliers),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'outliers',
+          colour = 'outliers'
+        ),
+        size = shape_size,
+        show.legend = TRUE
+      ) +
+
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable ==  filt_ipred),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'ipred',
+          colour = 'ipred'
+        ),
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_point(
+        data = data2 %>% dplyr::filter(variable ==  filt_pred),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'pred',
+          colour = 'pred'
+        ),
+        show.legend = TRUE
+      ) +
+
+
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable ==  filt_y),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'dv',
+          colour = 'dv'
+        ),
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable ==  filt_y &
+                                         abs(cwres) >= limit.outliers),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'outliers',
+          colour = 'outliers'
+        ),
+        show.legend = TRUE
+      ) +
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable == filt_ipred),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'ipred',
+          colour = 'ipred'
+        ),
+        size = line_size,
+        show.legend = FALSE
+      ) +
+      ggplot2::geom_line(
+        data = data2 %>% dplyr::filter(variable == filt_pred),
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          y = value,
+          linetype = 'pred',
+          colour = 'pred'
+        ),
+        size = line_size,
+        show.legend = FALSE
+      ) +
+
+      ggplot2::scale_linetype_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV',
+          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+        ),
+        limits = c("outliers", "dv", 'ipred', 'pred'),
+        values = line_linetype
+      ) +
+      ggplot2::scale_shape_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV',
+          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+        ),
+        limits = c("outliers", "dv", 'ipred', 'pred'),
+        values = shape_shape
+      ) +
+      ggplot2::scale_color_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV',
+          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+        ),
+        limits = c("outliers", "dv", 'ipred', 'pred'),
+        values = color_color
+      ) +
+      ggplot2::labs(
+        x = xlb,
+        y = ylb,
+        title = 'Individual plot title',
+        subtitle = glue::glue('Only Ids with |CWRES|\U2265 {limit.outliers} are displayed')
+      ) +
+
+
+      ggcertara::theme_certara(base_size = 11) +
+      ggplot2::theme(aspect.ratio = 1) +
+      ggplot2::theme(
+        legend.direction = "vertical",
+        legend.position = "right",
+        legend.title = element_blank()
+      )
+
+
+
+
+    g <-
+      fwp(
+        g1,
+        ncol = ip_ncol,
+        nrow = ip_nrow,
+        npg = ip_npage,
+        strat1 = strati1,
+        strat2 = strati2,
+        scale_facet2 = scale_facet,
+        labelfacet2 = labelfacet
+      )
+
+    print(g) #calls print.fwp because class(x) is "fwp"
+    return(g) #implicity calls print.fwp
+  }
+
+
+  if (isTRUE(uncertainty) & cwres.outliers == FALSE) {
+    ip_npage <- ceiling(
+      data %>% dplyr::group_by({
+        {
+          strati1
+        }
+      }) %>%
+        dplyr::slice(1) %>%
+        dplyr::ungroup() %>% nrow() / (ip_ncol *  ip_nrow)
+    )
+
+    remainder_id <- data %>%  dplyr::group_by({
+      {
+        strati1
+      }
+    }) %>%
+      dplyr::slice(1) %>%
+      dplyr::ungroup() %>% nrow() %% (ip_ncol *  ip_nrow)
+
+    if (remainder_id < ip_ncol &
+        remainder_id > 0)
+      print(
+        'Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow'
+      )
+
+
+    data2 <- data %>%
+      tidyr::pivot_longer(cols = c({
+        {
+          y
+        }
+      } , {
+        {
+          pred
+        }
+      } , {
+        {
+          ipred
+        }
+      }),
+      names_to = "variable",
+      values_to = "value")
+
+    if (is.null(data2$ipred_se)) {
+      stop("No IPRED_SE variable found. Uncertainty cannot be computed")
+    }
+
+
+    low <- (1 - uncert.ci) / 2
+    up  <-  1 - low
+    ci  <- (uncert.ci) * 100
+
+
+
+    data3 <-  data2 %>%
+      dplyr::filter(variable == filt_ipred) %>%
+
+      dplyr::mutate(ci.low = value + qnorm(low) * ipred_se,
+                    ci.up  = value + qnorm(up)  * ipred_se)
+
+    g1 <-   ggplot2::ggplot() +
+      ggplot2::aes(x = {
+        {
+          x
+        }
+      }, y = value) +
+
+      ggplot2::geom_point(
+        data = data2 %>% filter(variable ==  filt_y),
+        aes(
+          x =  {
+            {
+              x
+            }
+          },
+          y = value,
+          shape = 'dv',
+          colour = 'dv'
+        ),
+        size = shape_size,
+        show.legend = TRUE
+      ) +
+
+      ggplot2::scale_shape_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV'
+        ),
+        values = shape_shape
+      ) +
+      ggplot2::scale_color_manual(
+        name = 'variable',
+        labels = c(
+          'ipred' = 'IPRED',
+          'pred' = 'PRED',
+          'dv' = 'DV'
+        ),
+        values = color_color
+      ) +
+
+      ggplot2::geom_ribbon(
+        data = data3,
+        aes(
+          x = {
+            {
+              x
+            }
+          },
+          ymin = ci.low,
+          ymax = ci.up,
+          fill = 'ipred'
+        ),
+        alpha = alpha_fill
+      ) +
+      ggplot2::scale_fill_manual(
+        name = 'variable',
+        labels = c('ipred' = paste0(ci, '% CI')),
+        values = fill_fill
+      ) +
+      #guides(fill = guide_legend(title = 'Uncertainty on IPRED'))+
+
+      ggplot2::labs(
+        x = xlb,
+        y = ylb,
+        title = 'Individual plot title',
+        subtitle = 'Individual plot with CI around IPRED'
+      ) +
+      ggcertara::theme_certara(base_size = 11) +
+      ggplot2::theme(aspect.ratio = 1) +
+      ggplot2::theme(
+        legend.direction = "vertical",
+        legend.position = "right",
+        legend.title = element_blank()
+      )
+
+    g = fwp(
+      g1,
+      ncol = ip_ncol,
+      nrow = ip_nrow,
+      npg = ip_npage,
+      strat1 = strati1,
+      strat2 = strati2,
+      scale_facet2 = scale_facet,
+      labelfacet2 = labelfacet
+    )
+
+    print(g) #
+    return(g) #
+
+  }
+
 }
 
 
+## utils function #1
+fwp <-
+  function(g,
+           ncol = ip_ncol,
+           nrow = ip_nrow,
+           npg = ip_npage,
+           strat1 = NULL,
+           strat2 = NULL,
+           scale_facet2 = scale_facet,
+           labelfacet2 = labelfacet) {
+    l = list()
+
+
+    for (i in 1:(npg)) {
+      l[[length(l) + 1]] = g + ggforce::facet_wrap_paginate(
+        vars(!!strat1, !!strat2),
+        ncol = ncol,
+        nrow = nrow,
+        page = i,
+        scales = scale_facet2,
+        labeller = labelfacet2
+      ) + ggplot2::labs(caption = paste0("Page ", i, " out of ", npg))
+
+    }
+
+    structure(l, class = c("gg", 'fwp'))
+  }
+
+
 ## utils function #2
-print.fwp = function(x) {
-  for (i in seq_along(x)) print(x[[i]])
+print.fwp <- function(x) {
+  for (i in seq_along(x))
+    print(x[[i]])
 }
 ###############################
 
 ## utils function #3
 
-"&.gg" = function (e1,e2) {
-  for (i in seq_along(e1)) e1[[i]] = e1[[i]] + e2;
-  
+"&.gg" <- function (e1, e2) {
+  for (i in seq_along(e1))
+    e1[[i]] = e1[[i]] + e2
+
   e1
-}
-##############################
-############################## 
-
-indiv_plot <- function(data,
-                       x, 
-                       y, 
-                       ipred, 
-                       pred,  
-                       
-                       labels         = gof_labels(), 
-                       ip_ncol		  = 4, 
-                       ip_nrow		  = 4,
-                       scale_facet    = 'fixed',
-                       labelfacet     = "label_value",
-                       strati1        = id, 
-                       strati2        = NULL,
-                       
-                       color_color    = c('dv'       = ggcertara::certara_pal()[1],
-                                          'outliers' = ggcertara::certara_pal()[2],
-                                          'ipred'    = ggcertara::certara_pal()[4],
-                                          'pred'     = ggcertara::certara_pal()[7]),
-                       
-                       fill_fill      = c('ipred'    = ggcertara::certara_pal()[4]),
-                       
-                       alpha_fill     = 0.5,
-                       
-                       line_linetype  = c('dv'       = 'blank',
-                                          'outliers' = 'blank', 
-                                          'ipred'    = 'solid',
-                                          'pred'     = 'dashed'),
-                       
-                       line_size      = 1,
-
-                       shape_shape    = c('dv'       = 16,
-                                          'outliers' = 10,
-                                          'ipred'    = NA,
-                                          'pred'     = NA),
-                       
-                       shape_size     = 1,
-
-                       cwres.outliers = FALSE,
-                       limit.outliers = 5,
-                       uncertainty    = FALSE,
-                       uncert.ci      = 0.95,
-                       ...) {
-  
-  
- strati1     <- enquo(strati1)
- strati2     <- enquo(strati2)
-  
-  filt_y     <- deparse(substitute(y))
-  filt_ipred <- deparse(substitute(ipred))
-  filt_pred  <- deparse(substitute(pred))
-  
-  
-  xlb        <- ggcertara:::get_label({{ x }}, labels)
-  ylb        <- ggcertara:::get_label({{ y }} , labels)
-  
-  
-  if (cwres.outliers==TRUE & uncertainty==TRUE) stop('Both cwres.outliers and uncertainty arguments cannot be TRUE simulatenously') 
-  
-  if (uncert.ci >= 1) stop('uncert.ci cannot be greater or equal to 1') 
-  
-  if (cwres.outliers==FALSE & uncertainty==FALSE) {
-    data2    <- data %>% 
-                tidyr::pivot_longer(cols = c({{ y }}, {{ pred }}, {{ ipred }}), names_to = "variable", values_to = "value")
-    
-    ip_npage <- ceiling(data %>% 
-                          dplyr::group_by({{strati1}}) %>%
-                          dplyr::slice(1) %>%
-                          dplyr::ungroup() %>% 
-                          nrow() / (ip_ncol * ip_nrow))
-    
-    remainder_id <- data %>% 
-                     dplyr::group_by({{strati1}}) %>%
-                     dplyr::slice(1) %>%
-                     dplyr::ungroup() %>% 
-                     nrow() %% (ip_ncol * ip_nrow)
-    
-    if (remainder_id < ip_ncol & remainder_id > 0) print('Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow')
-    
-        
-    g1 <- ggplot2::ggplot(data2) +
-			    ggplot2::aes(x= {{ x }}, y = value) +
-			 
-			    ggplot2::geom_point( data=data2 %>% filter(variable ==  filt_y),   aes(x =  {{ x }}, y = value, shape='dv',colour='dv'),size=shape_size,show.legend = TRUE) +  
-			    ggplot2::geom_point( data=data2 %>% filter(variable ==  filt_ipred),   aes(x =  {{ x }}, y = value, shape='ipred',colour='ipred'),show.legend = TRUE) +  
-			    ggplot2::geom_point( data=data2 %>% filter(variable ==  filt_pred),   aes(x =  {{ x }}, y = value, shape='pred',colour='pred'),show.legend = TRUE) +  
-			  
-			    ggplot2::geom_line(  data=data2 %>% filter(variable ==  filt_y),aes(x = {{ x }}, y = value, linetype='dv',colour='dv'),show.legend = TRUE) +
-			    ggplot2::geom_line(  data=data2 %>% filter(variable ==  filt_ipred),aes(x = {{ x }}, y = value, linetype='ipred',colour='ipred'),size=line_size,show.legend = TRUE) +
-			    ggplot2::geom_line(  data=data2 %>% filter(variable ==  filt_pred ),aes(x = {{ x }}, y = value,linetype='pred',colour='pred'),size=line_size,show.legend = TRUE) +
-			    ggplot2::scale_linetype_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV'),limits = c("dv",'ipred','pred'),values=line_linetype)+
-			    ggplot2::scale_shape_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV'),limits = c( "dv",'ipred','pred'),values=shape_shape)+
-			    ggplot2::scale_color_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV'),limits = c( "dv",'ipred','pred'),values=color_color)+
-			 
-			    ggcertara::theme_certara(base_size=11) +
-			    ggplot2::theme(aspect.ratio=1) +
-			    ggplot2::theme(legend.direction = "vertical",legend.position = "right",legend.title = element_blank()) +
-			    ggplot2::labs(x=xlb, y=ylb,title ='Individual plot title',subtitle='Individual plot subtitle') 
-      
-    
-   
-    g = fwp(g1,ncol = ip_ncol, nrow = ip_nrow, npg=ip_npage, strat1=strati1, strat2=strati2,scale_facet2=scale_facet,labelfacet2=labelfacet)
-      
-    print(g) 
-    return(g) 
-    
-    
-  }
-  
-
-  
-  if (cwres.outliers==TRUE & uncertainty==FALSE) {
-      
-	 if (is.null(data$cwres)) {	
-        stop("No CWRES variable found.")
-     }
-      
-   datcwres <- data %>% dplyr::filter(abs(cwres)> limit.outliers) %>% 
-                        dplyr::select({{strati1}}) %>% 
-                        dplyr::pull() %>% unique()
-    
-        
-    data2 <- data %>% 
-				     tidyr::pivot_longer(cols=c({{ y }},{{ pred }},{{ ipred }}),names_to = "variable",values_to = "value")
-    
-    
-    ip_npage <- ceiling(data %>% dplyr::group_by({{strati1}}) %>%
-                                 dplyr::slice(1) %>%
-                                 dplyr::ungroup() %>% nrow()/(ip_ncol *  ip_nrow ))
-    
-    remainder_id <- data %>%  dplyr::group_by({{strati1}}) %>%
-                						  dplyr::slice(1) %>%
-                						  dplyr::ungroup() %>% nrow()%%(ip_ncol *  ip_nrow )
-    
-    if (remainder_id < ip_ncol & remainder_id > 0) print('Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow')
-    
-    
-   
-    g1 <- ggplot2::ggplot(data2) +
-			    ggplot2::aes(x= {{ x }}, y = value) +
-			
-			    ggplot2::geom_point( data=data2 %>% dplyr::filter(variable == filt_y & abs(cwres) < limit.outliers ),  aes(x = {{ x }}, y = value, shape='dv',colour='dv'),size=shape_size,show.legend = TRUE) +  
-			    ggplot2::geom_point( data=data2 %>% dplyr::filter(variable == filt_y & abs(cwres) >= limit.outliers),  aes(x = {{ x }}, y = value, shape='outliers',colour='outliers'),size=shape_size,show.legend = TRUE) +  
-			  
-			    ggplot2::geom_point( data=data2 %>% dplyr::filter(variable ==  filt_ipred),   aes(x =  {{ x }}, y = value, shape='ipred',colour='ipred'),show.legend = TRUE) +  
-			    ggplot2::geom_point( data=data2 %>% dplyr::filter(variable ==  filt_pred),   aes(x =  {{ x }}, y = value, shape='pred',colour='pred'),show.legend = TRUE) +  
-			     
-			  
-			    ggplot2::geom_line(  data=data2 %>% dplyr::filter(variable ==  filt_y),aes(x = {{ x }}, y = value, linetype='dv',colour='dv'),show.legend = TRUE) +
-			    ggplot2::geom_line(  data=data2 %>% dplyr::filter(variable ==  filt_y & abs(cwres) >= limit.outliers),aes(x = {{ x }}, y = value, linetype='outliers',colour='outliers'),show.legend = TRUE) +
-			    ggplot2::geom_line(  data=data2 %>% dplyr::filter(variable == filt_ipred),aes(x = {{ x }}, y = value, linetype='ipred',colour='ipred'),size=line_size,show.legend = FALSE) +
-			    ggplot2::geom_line(  data=data2 %>% dplyr::filter(variable == filt_pred),aes(x = {{ x }}, y = value,linetype='pred',colour='pred'),size=line_size,show.legend = FALSE) +
-			  
-			    ggplot2::scale_linetype_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV','outliers'=glue::glue('|CWRES| \U2265 {limit.outliers}')),limits = c("outliers", "dv",'ipred','pred'),values=line_linetype)+
-			    ggplot2::scale_shape_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV','outliers'=glue::glue('|CWRES| \U2265 {limit.outliers}')),limits = c("outliers", "dv",'ipred','pred'),values=shape_shape)+
-			    ggplot2::scale_color_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV','outliers'=glue::glue('|CWRES| \U2265 {limit.outliers}')),limits = c("outliers", "dv",'ipred','pred'),values=color_color)+
-			    ggplot2::labs(x=xlb, y=ylb,title ='Individual plot title',subtitle=glue::glue('Only Ids with |CWRES|\U2265 {limit.outliers} are displayed'))+
-			  
-			  
-			    ggcertara::theme_certara(base_size=11) +
-			    ggplot2::theme(aspect.ratio=1) +
-			    ggplot2::theme(legend.direction = "vertical",legend.position = "right",legend.title = element_blank()) 
-			 
-      
-
-    
-  g <- fwp(g1,ncol = ip_ncol, nrow = ip_nrow, npg=ip_npage, strat1=strati1, strat2=strati2,scale_facet2=scale_facet,labelfacet2=labelfacet)
-     
-      print(g) #calls print.fwp because class(x) is "fwp"
-      return(g) #implicity calls print.fwp
-  }
-  
-  
-  if (isTRUE(uncertainty) & cwres.outliers==FALSE) {
-  
-    ip_npage <- ceiling(data %>% dplyr::group_by({{strati1}}) %>%
-                                 dplyr::slice(1) %>%
-                                 dplyr::ungroup() %>% nrow()/(ip_ncol *  ip_nrow ))
-    
-    remainder_id <- data %>%  dplyr::group_by({{strati1}}) %>%
-                  					  dplyr::slice(1) %>%
-                  					  dplyr::ungroup() %>% nrow()%%(ip_ncol *  ip_nrow )
-					
-    if (remainder_id < ip_ncol & remainder_id > 0) print('Due to a bug in ggforce::facet_wrap_paginate, you might get an error and be asked to change ip_ncol and/or ip_nrow')
-    
-    
-    data2 <- data %>% 
-				tidyr::pivot_longer(cols=c({{ y }} ,{{ pred }} , {{ ipred }} ),names_to = "variable",values_to = "value")
-  
-  if (is.null(data2$ipred_se)) {	
-        stop("No IPRED_SE variable found. Uncertainty cannot be computed")
-     }
-      
-  
-    low <- (1-uncert.ci)/2
-    up  <-  1-low
-    ci  <- (uncert.ci) * 100
-    
- 
-
-    data3 <-  data2 %>% 
-              dplyr::filter(variable == filt_ipred) %>% 
-      
-              dplyr::mutate(ci.low = value + qnorm(low) * ipred_se,
-                            ci.up  = value + qnorm(up)  * ipred_se)
-  
-      g1 <-   ggplot2::ggplot() +
-              ggplot2::aes(x= {{ x }}, y = value) +
-              
-              ggplot2::geom_point( data=data2 %>% filter(variable ==  filt_y),   aes(x =  {{ x }}, y = value, shape='dv',colour='dv'),size=shape_size,show.legend = TRUE) +  
-                   
-              ggplot2::scale_shape_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV'),values=shape_shape)+
-              ggplot2::scale_color_manual(name='variable',labels=c('ipred'='IPRED','pred'='PRED','dv'='DV'),values=color_color)+
-                   
-              ggplot2::geom_ribbon(data = data3, aes(x = {{ x }}, ymin = ci.low, ymax = ci.up, fill = 'ipred'),alpha=alpha_fill) +
-              ggplot2::scale_fill_manual(name='variable',labels=c('ipred'=paste0(ci, '% CI')),values=fill_fill) +
-              #guides(fill = guide_legend(title = 'Uncertainty on IPRED'))+
-                 
-              ggplot2::labs(x=xlb,y=ylb,title ='Individual plot title',subtitle='Individual plot with CI around IPRED')+
-              ggcertara::theme_certara(base_size=11) +
-              ggplot2::theme(aspect.ratio=1) +
-              ggplot2::theme(legend.direction = "vertical",legend.position = "right",legend.title = element_blank())
-
-      g = fwp(g1,ncol = ip_ncol, nrow = ip_nrow, npg=ip_npage, strat1=strati1, strat2=strati2,scale_facet2=scale_facet,labelfacet2=labelfacet)
-    
-      print(g) #
-      return(g) #
- 
-}
-  
 }
