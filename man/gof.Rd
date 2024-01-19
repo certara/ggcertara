@@ -49,11 +49,7 @@ base for all scatterplots (histograms and QQ-plots are unaffected).}
 
 \item{p}{A \code{list} of `ggplot` objects to be laid out.}
 
-\item{nrow}{The dimensions of the grid to create - if both are \code{NULL} it
-will use the same logic as \link[ggplot2:facet_wrap]{facet_wrap()} to set the
-dimensions}
-
-\item{ncol}{The dimensions of the grid to create - if both are \code{NULL} it
+\item{ncol, nrow}{The dimensions of the grid to create - if both are \code{NULL} it
 will use the same logic as \link[ggplot2:facet_wrap]{facet_wrap()} to set the
 dimensions}
 
