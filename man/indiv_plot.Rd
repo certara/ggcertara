@@ -2,7 +2,7 @@
 % Please edit documentation in R/gof.R
 \name{indiv_plot}
 \alias{indiv_plot}
-\title{A generic function for individual plots.}
+\title{Generate Individual Plots}
 \usage{
 indiv_plot(
   data,
@@ -34,90 +34,89 @@ indiv_plot(
 )
 }
 \arguments{
-\item{data}{A \code{data.frame}.}
+\item{data}{A \code{data.frame} containing the dataset.}
 
-\item{x}{Changes independent variable. Value is time by default}
+\item{x}{The name of the independent variable column. Default value is "time".}
 
-\item{y}{Changes dependent variable. Value is dv by default}
+\item{y}{The name of the dependent variable column. Default value is "dv".}
 
-\item{ipred}{Changes individual prediction variable. Value is ipred by default}
+\item{ipred}{The name of the individual prediction variable column. Default value is "ipred".}
 
-\item{pred}{Changes population prediction variable. Value is pred by default}
+\item{pred}{The name of the population prediction variable column. Default value is "pred".}
 
-\item{labels}{A named \code{list} of labels.}
+\item{labels}{A named \code{list} of labels for plot annotations. Default values are provided by \code{gof_labels()}.}
 
-\item{ip_ncol}{Variable used to define numbers of columns per plot. Value is 4 by default. Works in combination with ip_nrow.
-A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow}
+\item{ip_ncol}{Number of columns per plot. Default is 4. Adjust if encountering issues with incomplete first rows on the last page due to \code{ggforce::facet_wrap_paginate}.}
 
-\item{ip_nrow}{Variable used to define numbers of rows per plot. Value is 4 by default. Works in combination with ip_ncol.
-A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow}
+\item{ip_nrow}{Number of rows per plot. Default is 4. Adjust similarly to \code{ip_ncol} for pagination issues.}
 
-\item{strati1}{Variable used to stratify the plots. Value is id by default.}
+\item{strati1}{The variable used to stratify the plots. Default is "id".}
 
-\item{strati2}{Variable used to possibly add an additional layer of stratification to the plots. Value is NULL by default.}
+\item{strati2}{An optional variable for an additional layer of stratification. Default is NULL.}
 
-\item{color_color}{Changes color. Should be a vector of 4 values (i.e. dv, ipred, pred, outliers).}
+\item{color_color}{A named vector specifying colors for different elements (dv, ipred, pred, outliers). Should be a vector of 4 colors.}
 
-\item{fill_fill}{Changes fill color for ipred when plotting with uncertainty option set to TRIE.}
+\item{fill_fill}{A named vector specifying fill colors for elements when uncertainty is plotted. Specifically for 'ipred' when \code{uncertainty} is TRUE.}
 
-\item{alpha_fill}{Transparency parameter for the area plotted to represent confidence interval.}
+\item{alpha_fill}{Transparency level for the filled area representing the confidence interval, when \code{uncertainty} is TRUE.}
 
-\item{line_linetype}{Changes linetype.}
+\item{line_linetype}{A named vector specifying line types for different elements (dv, outliers, ipred, pred).}
 
-\item{line_size}{Size parameter for the line layer.}
+\item{line_size}{Line width for the line layer. Default is 1.}
 
-\item{shape_shape}{Changes shape.}
+\item{shape_shape}{A named vector specifying shapes for different elements. When not specified, defaults are used.}
 
-\item{shape_size}{Size parameter for the shape layer.}
+\item{shape_size}{Size for the shape layer. Default is 1.}
 
-\item{cwres.outliers}{If \code{TRUE} then only profiles of individuals with outliers observations will be displayed. Value is FALSE by default.}
+\item{cwres.outliers}{If \code{TRUE}, only profiles of individuals with outlier observations are displayed. Default is FALSE.}
 
-\item{limit.outliers}{Value to be used for CWRES to identify outliers. Value is 5 by default.}
+\item{limit.outliers}{Threshold for CWRES to identify outliers. Default is 5.}
 
-\item{uncertainty}{If \code{TRUE} then  confidence interval (95% by default) around individual predictions are plotted with observations.}
+\item{uncertainty}{If \code{TRUE}, plots a confidence interval around individual predictions. Default is FALSE.}
 
-\item{uncert.ci}{Value used to define the confidence interval when having the uncertainty flag set to TRUE () 0.95 by default.}
+\item{uncert.ci}{Confidence interval level when \code{uncertainty} is TRUE. Default is 0.95.}
+
+\item{...}{Additional arguments passed to lower-level functions.}
 }
 \description{
-Observations (DV), individual predictions (IPRED) and population predictions (PRED) plotted against the independent variable for each individual.
+Observations (DV), individual predictions (IPRED), and population predictions (PRED) plotted against the independent variable for each individual.
 }
 \examples{
-#Examples
 \dontrun{
 indiv_plot(data = dat,
-           strati1 = id,
-           x = time,
-           y = dv,
-           ipred = ipred,
-           pred = pred,
-           ip_nrow = 4,
+           x = "time",
+           y = "dv",
+           ipred = "ipred",
+           pred = "pred",
+           strati1 = "id",
            ip_ncol = 3,
+           ip_nrow = 4,
            uncertainty = FALSE)
 }
 
 # Example with individuals with high cwres values
 \dontrun{
 indiv_plot(data = dat,
-           strati1 = id,
-           x = time,
-           y = dv,
-           ipred = ipred,
-           pred = pred,
-           ip_nrow = 4,
-           ip_ncol = 3,
+           x = "time",
+           y = "dv",
+           ipred = "ipred",
+           pred = "pred",
+           strati1 = "id",
            cwres.outliers = TRUE,
            limit.outliers = 5,
+           ip_ncol = 3,
+           ip_nrow = 4,
            uncertainty = FALSE)
 }
 
 # Example to apply layers with the ampersand sign & (example to change legend.position)
 \dontrun{
 indiv_plot(data = dat,
-           strati1 = id,
-           x = time,
-           y = dv,
-           ipred = ipred,
-           pred = pred) &
+           x = "time",
+           y = "dv",
+           ipred = "ipred",
+           pred = "pred",
+           strati1 = "id") &
 theme(legend.position = "bottom")
 }
 }

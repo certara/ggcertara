@@ -508,75 +508,72 @@ gof <- function(data=NULL,
 }
 
 
-#' A generic function for individual plots.
+#' Generate Individual Plots
 #'
-#' Observations (DV), individual predictions (IPRED) and population predictions (PRED) plotted against the independent variable for each individual.
+#' Observations (DV), individual predictions (IPRED), and population predictions (PRED) plotted against the independent variable for each individual.
 #'
-#' @param data A \code{data.frame}.
-#' @param labels A named \code{list} of labels.
-#' @param x Changes independent variable. Value is time by default
-#' @param y Changes dependent variable. Value is dv by default
-#' @param ipred Changes individual prediction variable. Value is ipred by default
-#' @param pred Changes population prediction variable. Value is pred by default
-#' @param color_color Changes color. Should be a vector of 4 values (i.e. dv, ipred, pred, outliers).
-#' @param shape_shape Changes shape.
-#' @param fill_fill Changes fill color for ipred when plotting with uncertainty option set to TRIE.
-#' @param alpha_fill Transparency parameter for the area plotted to represent confidence interval.
-#' @param line_linetype Changes linetype.
-#' @param line_size Size parameter for the line layer.
-#' @param shape_size Size parameter for the shape layer.
-#' @param strati1 Variable used to stratify the plots. Value is id by default.
-#' @param strati2 Variable used to possibly add an additional layer of stratification to the plots. Value is NULL by default.
-#' @param ip_ncol Variable used to define numbers of columns per plot. Value is 4 by default. Works in combination with ip_nrow.
-#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow
-#' @param ip_nrow Variable used to define numbers of rows per plot. Value is 4 by default. Works in combination with ip_ncol.
-#' A bug occurs when the first row of last page not complete (due to ggforce::facet_wrap_paginate). In this case you get a error message asking you to change ip_ncol and/or ip_nrow
-#' @param cwres.outliers If \code{TRUE} then only profiles of individuals with outliers observations will be displayed. Value is FALSE by default.
-#' @param limit.outliers Value to be used for CWRES to identify outliers. Value is 5 by default.
-#' @param uncertainty If \code{TRUE} then  confidence interval (95% by default) around individual predictions are plotted with observations.
-#' @param uncert.ci Value used to define the confidence interval when having the uncertainty flag set to TRUE () 0.95 by default.
+#' @param data A \code{data.frame} containing the dataset.
+#' @param labels A named \code{list} of labels for plot annotations. Default values are provided by \code{gof_labels()}.
+#' @param x The name of the independent variable column. Default value is "time".
+#' @param y The name of the dependent variable column. Default value is "dv".
+#' @param ipred The name of the individual prediction variable column. Default value is "ipred".
+#' @param pred The name of the population prediction variable column. Default value is "pred".
+#' @param color_color A named vector specifying colors for different elements (dv, ipred, pred, outliers). Should be a vector of 4 colors.
+#' @param shape_shape A named vector specifying shapes for different elements. When not specified, defaults are used.
+#' @param fill_fill A named vector specifying fill colors for elements when uncertainty is plotted. Specifically for 'ipred' when \code{uncertainty} is TRUE.
+#' @param alpha_fill Transparency level for the filled area representing the confidence interval, when \code{uncertainty} is TRUE.
+#' @param line_linetype A named vector specifying line types for different elements (dv, outliers, ipred, pred).
+#' @param line_size Line width for the line layer. Default is 1.
+#' @param shape_size Size for the shape layer. Default is 1.
+#' @param strati1 The variable used to stratify the plots. Default is "id".
+#' @param strati2 An optional variable for an additional layer of stratification. Default is NULL.
+#' @param ip_ncol Number of columns per plot. Default is 4. Adjust if encountering issues with incomplete first rows on the last page due to \code{ggforce::facet_wrap_paginate}.
+#' @param ip_nrow Number of rows per plot. Default is 4. Adjust similarly to \code{ip_ncol} for pagination issues.
+#' @param cwres.outliers If \code{TRUE}, only profiles of individuals with outlier observations are displayed. Default is FALSE.
+#' @param limit.outliers Threshold for CWRES to identify outliers. Default is 5.
+#' @param uncertainty If \code{TRUE}, plots a confidence interval around individual predictions. Default is FALSE.
+#' @param uncert.ci Confidence interval level when \code{uncertainty} is TRUE. Default is 0.95.
+#' @param ... Additional arguments passed to lower-level functions.
 #'
 #' @examples
-#' #Examples
 #' \dontrun{
 #' indiv_plot(data = dat,
-#'            strati1 = id,
-#'            x = time,
-#'            y = dv,
-#'            ipred = ipred,
-#'            pred = pred,
-#'            ip_nrow = 4,
+#'            x = "time",
+#'            y = "dv",
+#'            ipred = "ipred",
+#'            pred = "pred",
+#'            strati1 = "id",
 #'            ip_ncol = 3,
+#'            ip_nrow = 4,
 #'            uncertainty = FALSE)
 #' }
 #'
 #' # Example with individuals with high cwres values
 #' \dontrun{
 #' indiv_plot(data = dat,
-#'            strati1 = id,
-#'            x = time,
-#'            y = dv,
-#'            ipred = ipred,
-#'            pred = pred,
-#'            ip_nrow = 4,
-#'            ip_ncol = 3,
+#'            x = "time",
+#'            y = "dv",
+#'            ipred = "ipred",
+#'            pred = "pred",
+#'            strati1 = "id",
 #'            cwres.outliers = TRUE,
 #'            limit.outliers = 5,
+#'            ip_ncol = 3,
+#'            ip_nrow = 4,
 #'            uncertainty = FALSE)
 #' }
 #'
 #' # Example to apply layers with the ampersand sign & (example to change legend.position)
 #' \dontrun{
 #' indiv_plot(data = dat,
-#'            strati1 = id,
-#'            x = time,
-#'            y = dv,
-#'            ipred = ipred,
-#'            pred = pred) &
+#'            x = "time",
+#'            y = "dv",
+#'            ipred = "ipred",
+#'            pred = "pred",
+#'            strati1 = "id") &
 #' theme(legend.position = "bottom")
 #' }
 #' @export
-#'
 indiv_plot <- function(data,
                        x,
                        y,
