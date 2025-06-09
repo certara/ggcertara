@@ -2,6 +2,7 @@
 #' @import patchwork
 #' @importFrom rlang .data
 #' @importFrom dplyr filter %>%
+#' @importFrom stats qnorm
 NULL
 
 
@@ -529,6 +530,8 @@ gof <- function(data=NULL,
 #' @param strati2 An optional variable for an additional layer of stratification. Default is NULL.
 #' @param ip_ncol Number of columns per plot. Default is 4. Adjust if encountering issues with incomplete first rows on the last page due to \code{ggforce::facet_wrap_paginate}.
 #' @param ip_nrow Number of rows per plot. Default is 4. Adjust similarly to \code{ip_ncol} for pagination issues.
+#' @param scale_facet Character string specifying the scale type for faceted plots. One of "fixed", "free", "free_x", or "free_y". Default is "fixed".
+#' @param labelfacet Character string specifying the labeller function for faceted plots. One of "label_value", "label_both", "label_context", or "label_parsed". Default is "label_value".
 #' @param cwres.outliers If \code{TRUE}, only profiles of individuals with outlier observations are displayed. Default is FALSE.
 #' @param limit.outliers Threshold for CWRES to identify outliers. Default is 5.
 #' @param uncertainty If \code{TRUE}, plots a confidence interval around individual predictions. Default is FALSE.
@@ -1283,8 +1286,11 @@ fwp <-
 
 
 ## utils function #2
-#' @exportS3Method print fwp
-print.fwp <- function(x) {
+#' Print method for fwp objects
+#' @param x An object of class 'fwp'
+#' @param ... Additional arguments passed to print
+#' @noRd
+print.fwp <- function(x, ...) {
   for (i in seq_along(x))
     print(x[[i]])
 }
