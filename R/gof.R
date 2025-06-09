@@ -256,7 +256,7 @@ gof_histogram <- function(data, x, bins=20, labels=gof_labels(), symm_x=if (isTR
   density <- NULL
   g <- ggplot(data, aes(x={{ x }})) +
     labs(x=xlb, y="Density") +
-    geom_histogram(aes(y=stat(density)), color=NA, fill="#9DA1BD", alpha=0.3, bins=bins) +
+    geom_histogram(aes(y=after_stat(density)), color=NA, fill="#9DA1BD", alpha=0.3, bins=bins) +
     stat_density(geom="fitline_c") +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
@@ -1283,6 +1283,7 @@ fwp <-
 
 
 ## utils function #2
+#' @exportS3Method print fwp
 print.fwp <- function(x) {
   for (i in seq_along(x))
     print(x[[i]])
@@ -1290,7 +1291,7 @@ print.fwp <- function(x) {
 ###############################
 
 ## utils function #3
-
+#' @exportS3Method `&` gg
 "&.gg" <- function (e1, e2) {
   for (i in seq_along(e1))
     e1[[i]] = e1[[i]] + e2
