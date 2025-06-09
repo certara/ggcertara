@@ -1034,7 +1034,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = line_linetype
@@ -1045,7 +1045,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = shape_shape
@@ -1056,7 +1056,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = color_color
@@ -1065,7 +1065,7 @@ indiv_plot <- function(data,
         x = xlb,
         y = ylb,
         title = 'Individual plot title',
-        subtitle = glue::glue('Only Ids with |CWRES|\U2265 {limit.outliers} are displayed')
+        subtitle = paste0('Only Ids with |CWRES|\U2265 ', limit.outliers, ' are displayed')
       ) +
 
 
