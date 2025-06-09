@@ -2,6 +2,7 @@
 #' @import patchwork
 #' @importFrom rlang .data
 #' @importFrom dplyr filter %>%
+#' @importFrom stats qnorm
 NULL
 
 
@@ -256,7 +257,7 @@ gof_histogram <- function(data, x, bins=20, labels=gof_labels(), symm_x=if (isTR
   density <- NULL
   g <- ggplot(data, aes(x={{ x }})) +
     labs(x=xlb, y="Density") +
-    geom_histogram(aes(y=stat(density)), color=NA, fill="#9DA1BD", alpha=0.3, bins=bins) +
+    geom_histogram(aes(y=after_stat(density)), color=NA, fill="#9DA1BD", alpha=0.3, bins=bins) +
     stat_density(geom="fitline_c") +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
@@ -529,6 +530,8 @@ gof <- function(data=NULL,
 #' @param strati2 An optional variable for an additional layer of stratification. Default is NULL.
 #' @param ip_ncol Number of columns per plot. Default is 4. Adjust if encountering issues with incomplete first rows on the last page due to \code{ggforce::facet_wrap_paginate}.
 #' @param ip_nrow Number of rows per plot. Default is 4. Adjust similarly to \code{ip_ncol} for pagination issues.
+#' @param scale_facet Character string specifying the scale type for faceted plots. One of "fixed", "free", "free_x", or "free_y". Default is "fixed".
+#' @param labelfacet Character string specifying the labeller function for faceted plots. One of "label_value", "label_both", "label_context", or "label_parsed". Default is "label_value".
 #' @param cwres.outliers If \code{TRUE}, only profiles of individuals with outlier observations are displayed. Default is FALSE.
 #' @param limit.outliers Threshold for CWRES to identify outliers. Default is 5.
 #' @param uncertainty If \code{TRUE}, plots a confidence interval around individual predictions. Default is FALSE.
@@ -1034,7 +1037,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = line_linetype
@@ -1045,7 +1048,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = shape_shape
@@ -1056,7 +1059,7 @@ indiv_plot <- function(data,
           'ipred' = 'IPRED',
           'pred' = 'PRED',
           'dv' = 'DV',
-          'outliers' = glue::glue('|CWRES| \U2265 {limit.outliers}')
+          'outliers' = paste0('|CWRES| \U2265 ', limit.outliers)
         ),
         limits = c("outliers", "dv", 'ipred', 'pred'),
         values = color_color
@@ -1065,7 +1068,7 @@ indiv_plot <- function(data,
         x = xlb,
         y = ylb,
         title = 'Individual plot title',
-        subtitle = glue::glue('Only Ids with |CWRES|\U2265 {limit.outliers} are displayed')
+        subtitle = paste0('Only Ids with |CWRES|\U2265 ', limit.outliers, ' are displayed')
       ) +
 
 
@@ -1283,14 +1286,18 @@ fwp <-
 
 
 ## utils function #2
-print.fwp <- function(x) {
+#' Print method for fwp objects
+#' @param x An object of class 'fwp'
+#' @param ... Additional arguments passed to print
+#' @noRd
+print.fwp <- function(x, ...) {
   for (i in seq_along(x))
     print(x[[i]])
 }
 ###############################
 
 ## utils function #3
-
+#' @exportS3Method `&` gg
 "&.gg" <- function (e1, e2) {
   for (i in seq_along(e1))
     e1[[i]] = e1[[i]] + e2

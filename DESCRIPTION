@@ -16,18 +16,21 @@ License: GPL-3
 Depends: R (>= 2.10)
 Imports:
     ggplot2 (>= 3.0.0),
+    ggforce,
     scales,
     rlang,
     purrr,
     patchwork (>= 1.0.0),
-    dplyr
+    dplyr,
+    tidyr
 Suggests:
     knitr,
     kableExtra,
     shiny,
     colourpicker,
-    colorblindr
+    colorblindr,
+    testthat
 VignetteBuilder: knitr
 LazyData: true
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
