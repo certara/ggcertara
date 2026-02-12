@@ -179,35 +179,37 @@ GeomFitlineC <- ggproto("GeomFitlineC", GeomLine,
 
                         default_aes = aes(
                           fitcolour = "#ee3124", fitsize = 1,
-                          fitalpha = NA, fitlinetype = 1
+                          fitalpha = NA, fitlinetype = 1,
+                          colour = "#ee3124", linewidth = 1,
+                          alpha = NA, linetype = 1
                         ),
 
                         handle_na = function(self, data, params) {
-                          data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+                          data2 <- data[!(names(data) %in% c("colour", "color", "size", "linewidth", "alpha", "linetype"))]
                           nm <- names(data2)
                           nm <- ifelse(nm=="fitcolour",   "colour",   nm)
                           nm <- ifelse(nm=="fitcolor",    "color",    nm)
-                          nm <- ifelse(nm=="fitsize",     "size",     nm)
+                          nm <- ifelse(nm=="fitsize",     "linewidth",nm)
                           nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
                           nm <- ifelse(nm=="fitlinetype", "linetype", nm)
                           names(data2) <- nm
                           data3 <- self$super()$handle_na(data=data2, params=params)
                           nm <- names(data3)
-                          nm <- ifelse(nm=="colour",   "fitcolour",   nm)
-                          nm <- ifelse(nm=="color",    "fitcolor",    nm)
-                          nm <- ifelse(nm=="size",     "fitsize",     nm)
-                          nm <- ifelse(nm=="alpha",    "fitalpha",    nm)
-                          nm <- ifelse(nm=="linetype", "fitlinetype", nm)
+                          nm <- ifelse(nm=="colour",    "fitcolour",   nm)
+                          nm <- ifelse(nm=="color",     "fitcolor",    nm)
+                          nm <- ifelse(nm=="linewidth", "fitsize",     nm)
+                          nm <- ifelse(nm=="alpha",     "fitalpha",    nm)
+                          nm <- ifelse(nm=="linetype",  "fitlinetype", nm)
                           names(data3) <- nm
                           data3
                         },
 
                         draw_panel = function(self, data, ...) {
-                          data2 <- data[!(names(data) %in% c("colour", "color", "size", "alpha", "linetype"))]
+                          data2 <- data[!(names(data) %in% c("colour", "color", "size", "linewidth", "alpha", "linetype"))]
                           nm <- names(data2)
                           nm <- ifelse(nm=="fitcolour",   "colour",   nm)
                           nm <- ifelse(nm=="fitcolor",    "color",    nm)
-                          nm <- ifelse(nm=="fitsize",     "size",     nm)
+                          nm <- ifelse(nm=="fitsize",     "linewidth",nm)
                           nm <- ifelse(nm=="fitalpha",    "alpha",    nm)
                           nm <- ifelse(nm=="fitlinetype", "linetype", nm)
                           names(data2) <- nm
@@ -256,6 +258,9 @@ stat_loess_c <- geom_loess_c
 #' @export
 StatLoessC <- ggproto("StatLoessC", Stat,
                       required_aes = c("x", "y"),
+
+                      dropped_aes = c("colour", "color", "shape", "size",
+                                       "fill", "alpha", "linetype", "linewidth"),
 
                       compute_group = function(data, scales, span = 2/3, degree = 1, family = "symmetric", na.rm = FALSE) {
                         tryCatch({
@@ -399,5 +404,5 @@ log_xy <- function(g, limits=NULL) {
       labels = scales::trans_format("log10", scales::math_format(10^.x)),
       limits = limits
     ) +
-    annotation_logticks(sides="bl", size=0.3)
+    annotation_logticks(sides="bl", linewidth=0.3)
 }

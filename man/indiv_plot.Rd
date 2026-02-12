@@ -50,6 +50,10 @@ indiv_plot(
 
 \item{ip_nrow}{Number of rows per plot. Default is 4. Adjust similarly to \code{ip_ncol} for pagination issues.}
 
+\item{scale_facet}{Character string specifying the scale type for faceted plots. One of "fixed", "free", "free_x", or "free_y". Default is "fixed".}
+
+\item{labelfacet}{Character string specifying the labeller function for faceted plots. One of "label_value", "label_both", "label_context", or "label_parsed". Default is "label_value".}
+
 \item{strati1}{The variable used to stratify the plots. Default is "id".}
 
 \item{strati2}{An optional variable for an additional layer of stratification. Default is NULL.}

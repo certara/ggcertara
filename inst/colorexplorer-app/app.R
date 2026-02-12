@@ -270,17 +270,17 @@ shinyApp(
           legend.position="bottom", 
           axis.text=element_text(color="gray40"),
           axis.title=element_text(color="gray40"),
-          axis.ticks=element_line(color="grey40", size=0.3), 
-          panel.border=element_rect(fill=NA, color="grey60", size=0.3),
-          panel.grid.major.y=element_line(colour="grey90", size=0.3), 
-          panel.grid.minor.y=element_line(colour="grey90", size=0.3),
+          axis.ticks=element_line(color="grey40", linewidth=0.3), 
+          panel.border=element_rect(fill=NA, color="grey60", linewidth=0.3),
+          panel.grid.major.y=element_line(colour="grey90", linewidth=0.3), 
+          panel.grid.minor.y=element_line(colour="grey90", linewidth=0.3),
           panel.grid.major.x=element_blank(), 
           panel.grid.minor.x=element_blank())
 
       g2 <- ggplot(dat1(), aes(x=x, y=y, color=set, fill=set)) +
         labs(x="X-Axis Label [units]", y="Y-Axis Label [units]", color=NULL, fill=NULL) +
         geom_point(size=2, alpha=0.3) +
-        geom_smooth(method="lm", formula=y~x, size=0.8, se=FALSE) +
+        geom_smooth(method="lm", formula=y~x, linewidth=0.8, se=FALSE) +
         scale_color_manual(values=palr()) +
         scale_fill_manual(values=palr()) +
         #theme_bw(base_size=11, base_family="Arial Narrow") +
@@ -289,10 +289,10 @@ shinyApp(
           legend.position="bottom", 
           axis.text=element_text(color="gray40"),
           axis.title=element_text(color="gray40"),
-          axis.ticks=element_line(color="grey40", size=0.3), 
-          panel.border=element_rect(fill=NA, color="grey60", size=0.3),
-          panel.grid.major=element_line(colour="grey90", size=0.3), 
-          panel.grid.minor=element_line(colour="grey90", size=0.3))
+          axis.ticks=element_line(color="grey40", linewidth=0.3), 
+          panel.border=element_rect(fill=NA, color="grey60", linewidth=0.3),
+          panel.grid.major=element_line(colour="grey90", linewidth=0.3), 
+          panel.grid.minor=element_line(colour="grey90", linewidth=0.3))
 
       if (input$colorblind) {
         if (!requireNamespace("colorblindr", quietly = TRUE)) {

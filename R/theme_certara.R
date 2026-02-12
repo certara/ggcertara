@@ -68,14 +68,14 @@ theme_certara <- function(base_size=11, base_family="",
     theme_c <- theme(
         line=element_line(
             colour="black",
-            size=base_line_size, 
+            linewidth=base_line_size, 
             linetype=1,
             lineend="butt"),
 
         rect=element_rect(
             fill="white", 
             colour="black",
-            size=base_rect_size,
+            linewidth=base_rect_size,
             linetype=1), 
 
         text=element_text(
@@ -116,7 +116,7 @@ theme_certara <- function(base_size=11, base_family="",
             margin=margin(l=0.8*half_line/2),
             hjust=0.5),
         
-        axis.ticks=element_line(colour="grey40", size=0.3), 
+        axis.ticks=element_line(colour="grey40", linewidth=0.3), 
 
         axis.ticks.length=unit(half_line, "pt"),
         axis.ticks.length.x=unit(half_line, "pt"),
@@ -165,13 +165,9 @@ theme_certara <- function(base_size=11, base_family="",
             size=rel(0.9),
             margin=margin(r=2*half_line, unit="pt")),
 
-        legend.text.align=NULL,
-
         legend.title=element_text(
             size=rel(0.9),
             hjust=0), 
-
-        legend.title.align=NULL,
         
         legend.position="bottom", 
         legend.direction="horizontal",
@@ -189,7 +185,7 @@ theme_certara <- function(base_size=11, base_family="",
         panel.border=element_rect(
             fill=NA,
             colour="grey60",
-            size=0.3),
+            linewidth=0.3),
 
         panel.grid=element_blank(), 
         panel.grid.major=element_blank(), 
@@ -251,12 +247,12 @@ theme_certara <- function(base_size=11, base_family="",
 
     if (grid == "horizontal") {
         theme_c <- theme_c %+replace% theme(
-            panel.grid.major.y=element_line(colour="grey90", size=0.3), 
-            panel.grid.minor.y=element_line(colour="grey90", size=0.3))
+            panel.grid.major.y=element_line(colour="grey90", linewidth=0.3), 
+            panel.grid.minor.y=element_line(colour="grey90", linewidth=0.3))
     } else if (grid == "both") {
         theme_c <- theme_c %+replace% theme(
-            panel.grid.major=element_line(colour="grey90", size=0.3), 
-            panel.grid.minor=element_line(colour="grey90", size=0.3))
+            panel.grid.major=element_line(colour="grey90", linewidth=0.3), 
+            panel.grid.minor=element_line(colour="grey90", linewidth=0.3))
     }
 
     theme_c
@@ -369,7 +365,6 @@ certara_palfn <- function(start=1, select=NULL, permute=NULL, discard=NULL) {
 scale_colour_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="colour",
-        scale_name="certara",
         palette=certara_palfn(...))
 }
 
@@ -382,7 +377,6 @@ scale_color_certara <- scale_colour_certara
 scale_fill_certara <- function(...) {
     ggplot2::discrete_scale(
         aesthetics="fill",
-        scale_name="certara",
         palette=certara_palfn(...))
 }
 
@@ -391,7 +385,6 @@ scale_fill_certara <- function(...) {
 scale_colour_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="colour",
-        scale_name="certara_c",
         palette=scales::gradient_n_pal(certara_pal()[1:3]),
         guide=guide)
 }
@@ -401,7 +394,6 @@ scale_colour_certara_c <- function(..., guide="colourbar") {
 scale_fill_certara_c <- function(..., guide="colourbar") {
     ggplot2::continuous_scale(
         aesthetics="fill",
-        scale_name="certara_c",
         palette=scales::gradient_n_pal(certara_pal()[1:3]),
         guide=guide)
 }
