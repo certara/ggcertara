@@ -121,8 +121,8 @@ gof_residual <- function(data, x, y, labels=gof_labels(), baseplot=gof_baseplot,
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
     coord_symm_y() +
-    geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    theme(panel.grid.major.y=element_line(colour="grey80", size=0.3))
+    geom_hline(yintercept=0, color="black", linetype="dashed", linewidth=0.8) +
+    theme(panel.grid.major.y=element_line(colour="grey80", linewidth=0.3))
   if (isTRUE(log_x)) {
     g <- log_x(g)
   }
@@ -138,8 +138,8 @@ gof_absresidual <- function(data, x, y, labels=gof_labels(), baseplot=gof_basepl
     aes(x={{ x }}, y=abs({{ y }})) +
     labs(x=xlb, y=sprintf("|%s|", ylb)) +
     expand_limits(y=0) +
-    #geom_hline(yintercept=0, color="black", linetype="dashed", size=0.8) +
-    theme(panel.grid.major.y=element_line(colour="grey80", size=0.3))
+    #geom_hline(yintercept=0, color="black", linetype="dashed", linewidth=0.8) +
+    theme(panel.grid.major.y=element_line(colour="grey80", linewidth=0.3))
   if (isTRUE(log_x)) {
     g <- log_x(g)
   }
@@ -167,7 +167,7 @@ gof_identity <- function(data, x, y, labels=gof_labels(), baseplot=gof_baseplot,
     aes(x={{ x }}, y={{ y }}) +
     labs(x=xlb, y=ylb) +
     coord_symm_xy() +
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8)
+    geom_abline(slope=1, color="black", linetype="dashed", linewidth=0.8)
   if (isTRUE(log_xy)) {
     g <- log_xy(g)
   }
@@ -268,14 +268,14 @@ gof_histogram <- function(data, x, bins=20, labels=gof_labels(), symm_x=if (isTR
     } else {
       g <- log_x(g)
     }
-    g <- g + stat_function(fun=stats::dlnorm, color="black", linetype="dashed", size=0.8)
+    g <- g + stat_function(fun=stats::dlnorm, color="black", linetype="dashed", linewidth=0.8)
   } else {
     if (!is.null(symm_x))  {
       g <- g +
         scale_x_continuous(limits=function(x) symm_x + c(-1, 1)*max(abs(x - symm_x), na.rm=T)) +
         geom_vline(xintercept=symm_x, col="gray50")
     }
-    g <- g + stat_function(fun=stats::dnorm, color="black", linetype="dashed", size=0.8)
+    g <- g + stat_function(fun=stats::dnorm, color="black", linetype="dashed", linewidth=0.8)
   }
   g
 }
@@ -300,7 +300,7 @@ gof_qqplot <- function(data, x, labels=gof_labels()) {
     coord_symm_xy() +
     stat_qq(geom="point_c") +
     stat_qq_line(geom="fitline_c") +
-    geom_abline(slope=1, color="black", linetype="dashed", size=0.8) +
+    geom_abline(slope=1, color="black", linetype="dashed", linewidth=0.8) +
     theme_certara(base_size=11) +
     theme(aspect.ratio=1)
   g
@@ -758,7 +758,7 @@ indiv_plot <- function(data,
           linetype = 'ipred',
           colour = 'ipred'
         ),
-        size = line_size,
+        linewidth = line_size,
         show.legend = TRUE
       ) +
       ggplot2::geom_line(
@@ -773,7 +773,7 @@ indiv_plot <- function(data,
           linetype = 'pred',
           colour = 'pred'
         ),
-        size = line_size,
+        linewidth = line_size,
         show.legend = TRUE
       ) +
       ggplot2::scale_linetype_manual(
@@ -1012,7 +1012,7 @@ indiv_plot <- function(data,
           linetype = 'ipred',
           colour = 'ipred'
         ),
-        size = line_size,
+        linewidth = line_size,
         show.legend = FALSE
       ) +
       ggplot2::geom_line(
@@ -1027,7 +1027,7 @@ indiv_plot <- function(data,
           linetype = 'pred',
           colour = 'pred'
         ),
-        size = line_size,
+        linewidth = line_size,
         show.legend = FALSE
       ) +
 
