@@ -1,7 +1,7 @@
 Package: ggcertara
 Type: Package
-Version: 0.4.1
-Date: 2020-11-17
+Version: 0.5.0
+Date: 2026-02-12
 Title: A ggplot2 theme for Certara CSC-iDD
 Authors@R: c(
     person("James", "Craig", role=c("aut", "cre"), email="james.craig@certara.com"),
@@ -15,7 +15,7 @@ BugReports: https://github/certara/ggcertara/issues
 License: GPL-3
 Depends: R (>= 2.10)
 Imports:
-    ggplot2 (>= 3.0.0),
+    ggplot2 (>= 3.4.0),
     ggforce,
     scales,
     rlang,
