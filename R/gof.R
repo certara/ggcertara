@@ -5,6 +5,13 @@
 #' @importFrom stats qnorm
 NULL
 
+# Column names referenced via non-standard evaluation (ggplot2 aes(), dplyr
+# verbs) inside indiv_plot(). Declared here so R CMD check does not flag them as
+# undefined global variables.
+utils::globalVariables(c(
+  "id", "value", "variable", "cwres", "ipred_se", "ci.low", "ci.up"
+))
+
 
 #' Read gof data
 #'
@@ -1259,13 +1266,13 @@ indiv_plot <- function(data,
 ## utils function #1
 fwp <-
   function(g,
-           ncol = ip_ncol,
-           nrow = ip_nrow,
-           npg = ip_npage,
+           ncol,
+           nrow,
+           npg,
            strat1 = NULL,
            strat2 = NULL,
-           scale_facet2 = scale_facet,
-           labelfacet2 = labelfacet) {
+           scale_facet2,
+           labelfacet2) {
     l = list()
 
 

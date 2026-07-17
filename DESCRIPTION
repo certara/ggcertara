@@ -29,7 +29,8 @@ Suggests:
     shiny,
     colourpicker,
     colorblindr,
-    testthat
+    testthat,
+    withr
 Remotes:
     clauswilke/colorblindr
 VignetteBuilder: knitr
