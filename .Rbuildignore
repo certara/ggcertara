@@ -1,5 +1,7 @@
 ^\..*\.swp$
 ^.*\.R\.tmp\.R$
+^\.gitignore$
+^\.gitattributes$
 ^_config.yml$
 ^cran-comments\.md$
 ^\.travis\.yml$

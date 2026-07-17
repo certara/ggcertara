@@ -1,0 +1,28 @@
+# Enforce LF line endings for all text files, in the repository and on
+# checkout, so editors/RStudio rebuilds on Windows do not flip them to CRLF.
+* text=auto eol=lf
+
+# R sources and package metadata are always text (LF).
+*.R text eol=lf
+*.Rd text eol=lf
+*.Rmd text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+DESCRIPTION text eol=lf
+NAMESPACE text eol=lf
+
+# Treat known binary assets as binary so they are never line-ending converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.rds binary
+*.rda binary
+*.RData binary
+*.zip binary
+*.gz binary
