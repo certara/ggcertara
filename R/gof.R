@@ -618,13 +618,13 @@ indiv_plot <- function(data,
                        ...) {
   strati1 <- enquo(strati1)
   strati2 <- enquo(strati2)
-  x <- rlang::enquo(x)
-  y <- rlang::enquo(y)
-
 
   filt_y <- deparse(substitute(y))
   filt_ipred <- deparse(substitute(ipred))
   filt_pred <- deparse(substitute(pred))
+
+  x <- rlang::enquo(x)
+  y <- rlang::enquo(y)
 
   xlb <- get_label(!!x, labels)
   ylb <- get_label(!!y, labels)
