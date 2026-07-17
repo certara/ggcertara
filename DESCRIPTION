@@ -30,6 +30,8 @@ Suggests:
     colourpicker,
     colorblindr,
     testthat
+Remotes:
+    clauswilke/colorblindr
 VignetteBuilder: knitr
 LazyData: true
 Encoding: UTF-8
