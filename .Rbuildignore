@@ -2,6 +2,7 @@
 ^.*\.R\.tmp\.R$
 ^\.gitignore$
 ^\.gitattributes$
+^\.github$
 ^_config.yml$
 ^cran-comments\.md$
 ^\.travis\.yml$
